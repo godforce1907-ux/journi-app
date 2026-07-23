@@ -6,6 +6,7 @@ import {
   Target, Flame, Calendar, Award, ChevronDown, Send, Music, Snowflake,
   Eye, Waves, HeartPulse, Zap, Leaf, Feather, Mail, Chrome, Apple, ShieldCheck, LogOut, Star
 } from "lucide-react";
+import { supabase } from "./supabaseClient.js";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS
@@ -690,16 +691,20 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
     setTimeout(() => finishAuth(provider, provider === "Google" ? "you@gmail.com" : "you@icloud.com"), 900);
   };
 
-  const sendCode = () => {
+  const sendCode = async () => {
     if (!/^\S+@\S+\.\S+$/.test(email)) { setError("Enter a valid email address."); return; }
     setError("");
-    setMode(useMagicLink ? "magicSent" : "otp");
+    const { error: sendError } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    if (sendError) { setError(sendError.message); return; }
+    setMode("magicSent");
   };
 
-  const verifyOtp = () => {
+  const verifyOtp = async () => {
     if (otp.trim().length !== 6) { setError("Enter the 6-digit code."); return; }
     setError("");
-    finishAuth("Email (OTP)", email);
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
+    if (verifyError) { setError(verifyError.message); return; }
+    finishAuth("Email (OTP)", data.user?.email || email);
   };
 
   return (
@@ -784,7 +789,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
             <Card style={{ background: T.sandPale, width: "100%" }}>
               <p style={{ margin: 0, fontSize: 11.5, color: "#8A5528" }}>Demo mode — no real email is sent. Tap below to simulate clicking the link.</p>
             </Card>
-            <PrimaryButton onClick={() => finishAuth("Email (Magic Link)", email)}>I clicked the link</PrimaryButton>
+            <p style={{ fontSize: 12.5, color: T.inkFaint }}>Once you click the link in your email, this page will automatically continue — no need to come back here.</p>
           </div>
         )}
 
@@ -4750,6 +4755,38 @@ export default function JourniApp() {
       setBootstrapDone(true);
     })();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    let authListener = null;
+
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!isMounted) return;
+      if (data.session?.user) {
+        handleAuthenticated({
+          email: data.session.user.email,
+          authMethod: "Email (Magic Link)",
+          joinDate: data.session.user.created_at,
+        });
+      }
+    })();
+
+    authListener = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        handleAuthenticated({
+          email: session.user.email,
+          authMethod: "Email (Magic Link)",
+          joinDate: session.user.created_at,
+        });
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      authListener?.subscription?.unsubscribe?.();
+    };
   }, []);
 
   /* Advance past Splash once both the brand moment and the account check are done */
