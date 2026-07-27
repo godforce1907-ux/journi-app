@@ -8,7 +8,7 @@ workflows:
       vars:
         VITE_SUPABASE_URL: $VITE_SUPABASE_URL
         VITE_SUPABASE_ANON_KEY: $VITE_SUPABASE_ANON_KEY
-      node: 20
+      node: 22
       xcode: latest
       cocoapods: default
     scripts:
