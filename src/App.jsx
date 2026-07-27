@@ -4735,11 +4735,8 @@ export default function JourniApp() {
     (async () => {
       await supabase.auth.getSession();
       const sessionCheck = await supabase.auth.getSession();
-      console.log("SESSION CHECK:", sessionCheck.data.session?.user?.email || "no session");
       const profile = await loadUserProfile();
-      console.log("LOADED PROFILE:", profile);
       const savedSnapshot = await loadAppStateSnapshot();
-      console.log("LOADED SNAPSHOT:", savedSnapshot);
       if (cancelled) return;
       if (savedSnapshot?.state) {
         setState((s) => ({ ...s, ...savedSnapshot.state }));
@@ -4889,7 +4886,6 @@ export default function JourniApp() {
   const go = (s) => { setChapter(null); setScreen(s); };
 
   const handleAuthenticated = async (partialProfile) => {
-    console.log("handleAuthenticated called. Current state.plan is:", state.plan);
     const merged = {
       ...(authProfile || {}),
       ...partialProfile,
