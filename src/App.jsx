@@ -4733,8 +4733,13 @@ export default function JourniApp() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      await supabase.auth.getSession();
+      const sessionCheck = await supabase.auth.getSession();
+      console.log("SESSION CHECK:", sessionCheck.data.session?.user?.email || "no session");
       const profile = await loadUserProfile();
+      console.log("LOADED PROFILE:", profile);
       const savedSnapshot = await loadAppStateSnapshot();
+      console.log("LOADED SNAPSHOT:", savedSnapshot);
       if (cancelled) return;
       if (savedSnapshot?.state) {
         setState((s) => ({ ...s, ...savedSnapshot.state }));
@@ -4761,9 +4766,19 @@ export default function JourniApp() {
     let isMounted = true;
     let authListener = null;
 
+    const waitForBootstrap = async () => {
+      if (bootstrapDone) return true;
+      const startedAt = Date.now();
+      while (!bootstrapDone && Date.now() - startedAt < 5000) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      return bootstrapDone;
+    };
+
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (!isMounted) return;
+      if (!(await waitForBootstrap())) return;
       if (data.session?.user) {
         handleAuthenticated({
           email: data.session.user.email,
@@ -4775,11 +4790,15 @@ export default function JourniApp() {
 
     authListener = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
-        handleAuthenticated({
-          email: session.user.email,
-          authMethod: "Email (Magic Link)",
-          joinDate: session.user.created_at,
-        });
+        (async () => {
+          if (!(await waitForBootstrap())) return;
+          if (!isMounted) return;
+          handleAuthenticated({
+            email: session.user.email,
+            authMethod: "Email (Magic Link)",
+            joinDate: session.user.created_at,
+          });
+        })();
       }
     });
 
@@ -4787,7 +4806,7 @@ export default function JourniApp() {
       isMounted = false;
       authListener?.subscription?.unsubscribe?.();
     };
-  }, []);
+  }, [bootstrapDone]);
 
   /* Advance past Splash once both the brand moment and the account check are done */
   useEffect(() => {
@@ -4870,6 +4889,7 @@ export default function JourniApp() {
   const go = (s) => { setChapter(null); setScreen(s); };
 
   const handleAuthenticated = async (partialProfile) => {
+    console.log("handleAuthenticated called. Current state.plan is:", state.plan);
     const merged = {
       ...(authProfile || {}),
       ...partialProfile,
@@ -4879,6 +4899,9 @@ export default function JourniApp() {
     await saveUserProfile(merged);
     if (reauth) {
       setReauth(false);
+      setPhase("app");
+      setScreen("home");
+    } else if (state.plan) {
       setPhase("app");
       setScreen("home");
     } else {
