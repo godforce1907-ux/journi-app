@@ -3,6 +3,8 @@ workflows:
     name: JOURNI iOS Build
     max_build_duration: 60
     environment:
+      groups:
+        - supabase
       vars:
         VITE_SUPABASE_URL: $VITE_SUPABASE_URL
         VITE_SUPABASE_ANON_KEY: $VITE_SUPABASE_ANON_KEY
