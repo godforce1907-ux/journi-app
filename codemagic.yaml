@@ -3,8 +3,8 @@ workflows:
     name: JOURNI iOS Build
     max_build_duration: 60
     ios_signing:
-      automatic_code_signing:
-        provisioning_profile: journi_app_store
+      provisioning_profiles:
+        - profile: journi_app_store
     environment:
       groups:
         - supabase
