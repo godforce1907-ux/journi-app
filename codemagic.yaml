@@ -43,6 +43,11 @@ workflows:
             <string>manual</string>
             <key>compileBitcode</key>
             <true/>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.godforce1907.journi</key>
+              <string>Journi App Store</string>
+            </dict>
           </dict>
           </plist>
           EOF
