@@ -21,6 +21,8 @@ workflows:
         script: npm install
       - name: Build web app
         script: npm run build
+      - name: Print built index.html
+        script: cat dist/index.html
       - name: Sync Capacitor
         script: npx cap sync ios
       - name: Set export compliance
