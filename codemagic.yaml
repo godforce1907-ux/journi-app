@@ -1,3 +1,6 @@
+integrations:
+  app_store_connect: "godforce1907-ux's Org"
+
 workflows:
   ios-build:
     name: JOURNI iOS Build
@@ -52,3 +55,7 @@ workflows:
           </plist>
           EOF
           xcodebuild -exportArchive -archivePath "$CM_BUILD_DIR/ios/App/App.xcarchive" -exportPath "$CM_BUILD_DIR/ios/App/ipa" -exportOptionsPlist ExportOptions.plist
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
