@@ -1,9 +1,8 @@
-integrations:
-  app_store_connect: "godforce1907-ux's Org"
-
 workflows:
   ios-build:
     name: JOURNI iOS Build
+    integrations:
+      app_store_connect: "godforce1907-ux's Org"
     max_build_duration: 60
     environment:
       ios_signing:
