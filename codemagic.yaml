@@ -54,6 +54,8 @@ workflows:
           </plist>
           EOF
           xcodebuild -exportArchive -archivePath "$CM_BUILD_DIR/ios/App/App.xcarchive" -exportPath "$CM_BUILD_DIR/ios/App/ipa" -exportOptionsPlist ExportOptions.plist
+    artifacts:
+      - ios/App/ipa/*.ipa
     publishing:
       app_store_connect:
         auth: integration
