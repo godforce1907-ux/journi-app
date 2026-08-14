@@ -23,6 +23,11 @@ workflows:
         script: npm run build
       - name: Sync Capacitor
         script: npx cap sync ios
+      - name: Set export compliance
+        script: |
+          cd ios/App/App
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" Info.plist || \
+          /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" Info.plist
       - name: Apply signing profiles
         script: |
           cd ios/App
