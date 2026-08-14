@@ -27,6 +27,10 @@ workflows:
         script: |
           cd ios/App
           xcode-project use-profiles
+      - name: Bump iOS build number
+        script: |
+          cd ios/App
+          xcrun agvtool new-version -all $BUILD_NUMBER
       - name: Archive iOS app
         script: |
           cd ios/App
