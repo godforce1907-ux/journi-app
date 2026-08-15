@@ -1,5 +1,4 @@
 import ReactDOM from "react-dom/client";
-import { installStorageShim } from "./storageShim.js";
 
 // TEMP DEBUG - REMOVE BEFORE FINAL RELEASE
 const renderDebugError = (message, label) => {
@@ -52,18 +51,19 @@ window.addEventListener("unhandledrejection", (event) => {
   renderDebugError(reason, "unhandled promise rejection");
 });
 
-try {
-  // Must run before App.jsx's module code executes any storage calls.
-  installStorageShim();
-} catch (error) {
-  const message = error instanceof Error
-    ? error.stack || error.message
-    : String(error);
-  renderDebugError(message, "storageShim install error");
-  throw error;
-}
-
 async function startApp() {
+  try {
+    // Must run before App.jsx's module code executes any storage calls.
+    const { installStorageShim } = await import("./storageShim.js");
+    installStorageShim();
+  } catch (error) {
+    const message = error instanceof Error
+      ? error.stack || error.message
+      : String(error);
+    renderDebugError(message, "storageShim install error");
+    throw error;
+  }
+
   const { default: App } = await import("./App.jsx");
 
   // Note: intentionally NOT wrapped in <React.StrictMode>. The Claude.ai
