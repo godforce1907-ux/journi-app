@@ -10,9 +10,6 @@ workflows:
           - profile: journi_app_store
       groups:
         - supabase
-      vars:
-        VITE_SUPABASE_URL: $VITE_SUPABASE_URL
-        VITE_SUPABASE_ANON_KEY: $VITE_SUPABASE_ANON_KEY
       node: 22
       xcode: latest
       cocoapods: default
