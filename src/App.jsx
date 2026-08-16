@@ -3985,12 +3985,66 @@ const COACH_OPENERS = {
   "Friendly": "Hey {name}, good to see you. What's going on before you dive into today's promise?",
 };
 
-const COACH_REPLIES = [
-  "That makes sense — starting is often the hardest part, not the task itself. What's the smallest possible version of that first step?",
-  "It sounds like your brain is treating this as bigger than it actually is. What would make it feel 10% easier right now?",
-  "That's really common. Would it help to shrink today's promise even further, or try a quick reset first?",
-  "You don't have to feel ready to begin — you just have to take the tiniest step. What's one thing you could do in the next two minutes?",
-];
+const COACH_REPLY_CATEGORIES = {
+  energy: {
+    keywords: ["tired", "low on energy", "exhausted", "no energy", "drained", "fatigue"],
+    replies: [
+      "Low energy is real — it's not a character flaw. What's the smallest version of this you could do even feeling drained?",
+      "Your body might be asking for rest, not willpower. Would a 2-minute version of this still count as keeping your promise?",
+      "That's your body giving you real data. What's one gentle way to move forward without pushing through completely depleted?",
+    ],
+  },
+  time: {
+    keywords: ["busy", "no time", "don't have time", "swamped", "packed", "schedule"],
+    replies: [
+      "Busy is often a signal to shrink the promise, not skip it. What's the smallest version that still fits today?",
+      "You don't need a big window — you need a small one. When's the next 5 minutes you actually have free?",
+      "What if today's promise took under 60 seconds? What would that look like?",
+    ],
+  },
+  doubt: {
+    keywords: ["can't", "won't work", "pointless", "why bother", "give up", "no point"],
+    replies: [
+      "That doubt makes sense — it's showing up because this matters to you. What's true even if today feels shaky?",
+      "You don't have to believe it'll work perfectly. You just have to take the next small step. What's that step?",
+      "Doubt is loud right now, but it's not the whole story. What's one thing you know for sure, even today?",
+    ],
+  },
+  resistance: {
+    keywords: ["don't want to", "not feeling it", "ugh", "dreading", "avoiding"],
+    replies: [
+      "Resistance is normal, even for things we care about. What's the tiniest first move that doesn't require motivation?",
+      "You don't need to want to do it — you just need to start. What's one small action that counts?",
+      "It sounds like your brain is treating this as bigger than it actually is. What would make it feel 10% easier right now?",
+    ],
+  },
+  overwhelm: {
+    keywords: ["overwhelmed", "too much", "stressed", "anxious", "can't handle"],
+    replies: [
+      "That's a lot to carry. Let's shrink this down — what's the smallest piece you could handle right now?",
+      "You don't have to solve everything today. What's one small, doable thing in front of you?",
+      "Overwhelm usually means the step feels too big. What would a tiny version of this look like?",
+    ],
+  },
+  general: {
+    keywords: [],
+    replies: [
+      "That makes sense — starting is often the hardest part, not the task itself. What's the smallest possible version of that first step?",
+      "That's really common. Would it help to shrink today's promise even further, or try a quick reset first?",
+      "You don't have to feel ready to begin — you just have to take the tiniest step. What's one thing you could do in the next two minutes?",
+    ],
+  },
+};
+
+function getCoachReply(userInput, replyHistory) {
+  const lowerInput = userInput.toLowerCase();
+  const matchedCategory = Object.entries(COACH_REPLY_CATEGORIES).find(
+    ([key, cat]) => key !== "general" && cat.keywords.some((kw) => lowerInput.includes(kw))
+  );
+  const category = matchedCategory ? matchedCategory[1] : COACH_REPLY_CATEGORIES.general;
+  const usedInCategory = replyHistory.filter((r) => category.replies.includes(r)).length;
+  return category.replies[usedInCategory % category.replies.length];
+}
 
 const TYPING_KEYFRAMES = `
 @keyframes jDot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
@@ -4025,14 +4079,14 @@ function CoachScreen({ onBack, plan }) {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const replyCount = messages.filter((m) => m.from === "pip").length - 1;
 
   const send = () => {
     if (!input.trim() || isTyping) return;
     setMessages((m) => [...m, { from: "me", text: input }]);
     setInput("");
     setIsTyping(true);
-    const reply = COACH_REPLIES[replyCount % COACH_REPLIES.length];
+    const replyHistory = messages.filter((m) => m.from === "pip").map((m) => m.text);
+    const reply = getCoachReply(input, replyHistory);
     setTimeout(() => {
       setMessages((m) => [...m, { from: "pip", text: reply }]);
       setIsTyping(false);
