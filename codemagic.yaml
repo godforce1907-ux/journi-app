@@ -16,16 +16,8 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm install
-      - name: Check Supabase env vars
-        script: |
-          echo "VITE_SUPABASE_URL length: ${#VITE_SUPABASE_URL}"
-          echo "VITE_SUPABASE_ANON_KEY length: ${#VITE_SUPABASE_ANON_KEY}"
       - name: Build web app
         script: npm run build
-      - name: Check built bundle for Supabase URL
-        script: grep -r "supabase.co" dist/assets/*.js || echo "NOT FOUND IN BUNDLE"
-      - name: Print built index.html
-        script: cat dist/index.html
       - name: Sync Capacitor
         script: npx cap sync ios
       - name: Set export compliance
