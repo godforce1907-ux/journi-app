@@ -2,10 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Journi</title>
     <style>
-      html, body, #root { height: 100%; margin: 0; }
+      html, body { height: 100%; margin: 0; }
+      #root {
+        height: 100%;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        box-sizing: border-box;
+      }
       body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
   </head>
