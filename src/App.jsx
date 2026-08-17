@@ -654,7 +654,7 @@ function SplashScreen({ onDone }) {
     return () => clearTimeout(t);
   }, []);
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 65%)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 65%)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "env(safe-area-inset-top) 24px env(safe-area-inset-bottom)", zIndex: 60 }}>
       <style>{OB_KEYFRAMES}</style>
       <div style={{ animation: "jBounce 1.6s ease-in-out infinite" }}><Pip size={80} mood="happy" /></div>
       <h1 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 26, color: T.ink, margin: "18px 0 0" }}>Journi</h1>
@@ -708,7 +708,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
   };
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "26px 26px 30px", zIndex: 50 }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(26px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom))", zIndex: 50 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         {mode !== "options" ? (
           <button onClick={() => { setError(""); setMode(mode === "otp" || mode === "magicSent" ? "email" : "options"); }} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -833,7 +833,7 @@ function WelcomeBackScreen({ name, returnContext, onContinue }) {
   const selected = emotion ? WELCOME_EMOTIONS.find((m) => m.label === emotion) : null;
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: g.gradient, display: "flex", flexDirection: "column", padding: "50px 26px 30px", zIndex: 50, overflowY: "auto" }}>
+    <div style={{ position: "absolute", inset: 0, background: g.gradient, display: "flex", flexDirection: "column", padding: "max(50px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom))", zIndex: 50, overflowY: "auto" }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
         <Pip size={88} mood="happy" />
       </div>
@@ -887,7 +887,7 @@ function WelcomeBackScreen({ name, returnContext, onContinue }) {
 --------------------------------------------------------- */
 function MeetCoachScreen({ onBack, onContinue, name }) {
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "22px 26px 30px", zIndex: 40 }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom))", zIndex: 40 }}>
       <button onClick={onBack} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", alignSelf: "flex-start" }}>
         <ArrowLeft size={16} color={T.ink} />
       </button>
@@ -921,7 +921,7 @@ function MeetCoachScreen({ onBack, onContinue, name }) {
 --------------------------------------------------------- */
 function WhyPromisesFailScreen({ onBack, onContinue }) {
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "22px 26px 30px", zIndex: 40 }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom))", zIndex: 40 }}>
       <style>{OB_KEYFRAMES}</style>
       <button onClick={onBack} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", alignSelf: "flex-start" }}>
         <ArrowLeft size={16} color={T.ink} />
@@ -1011,7 +1011,7 @@ function PromiseCeremonyScreen({ onComplete, plan }) {
   };
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "30px 24px 26px", zIndex: 40, overflowY: "auto" }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(30px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40, overflowY: "auto" }}>
       <style>{OB_KEYFRAMES}{`
         @keyframes jGlow { 0%, 100% { box-shadow: 0 6px 16px rgba(47,156,143,0.28); } 50% { box-shadow: 0 6px 26px rgba(47,156,143,0.5); } }
         @keyframes jNameIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
@@ -1192,7 +1192,7 @@ function IdentityRecapScreen({ type, gapAware, onContinue }) {
 
   if (loading || !stats) {
     return (
-      <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, zIndex: 45 }}>
+      <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: "env(safe-area-inset-top) 24px env(safe-area-inset-bottom)", zIndex: 45 }}>
         <Pip size={40} mood="soft" />
         {showEscape && (
           <button onClick={onContinue} style={{ background: "none", border: "none", fontSize: 12.5, fontWeight: 600, color: T.inkFaint, cursor: "pointer" }}>
@@ -1214,7 +1214,7 @@ function IdentityRecapScreen({ type, gapAware, onContinue }) {
   const anyCourageEvidence = stats.recoveries > 0 || stats.honestReschedules > 0;
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "40px 26px 30px", zIndex: 45, overflowY: "auto" }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(40px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom))", zIndex: 45, overflowY: "auto" }}>
       <style>{OB_KEYFRAMES}{`@keyframes jRowIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }`}</style>
 
       <div style={{ textAlign: "center", marginBottom: 22, animation: "jSlideIn .45s ease" }}>
@@ -1316,7 +1316,7 @@ function WeeklyReviewScreen({ onBack, onComplete, plan, onEvidence }) {
 
   if (!timeline) {
     return (
-      <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", zIndex: 45 }}>
+      <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", padding: "env(safe-area-inset-top) 24px env(safe-area-inset-bottom)", zIndex: 45 }}>
         <div style={{ padding: "28px 24px 0" }}>
           <button onClick={onBack} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <ArrowLeft size={16} color={T.ink} />
@@ -1342,7 +1342,7 @@ function WeeklyReviewScreen({ onBack, onComplete, plan, onEvidence }) {
   else if (kept === 0) recapLine += ` A quiet week. That's alright — the evidence starts building again whenever you're ready.`;
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "28px 24px 26px", zIndex: 45, overflowY: "auto" }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(28px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 45, overflowY: "auto" }}>
       <style>{OB_KEYFRAMES}</style>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
         <button onClick={onBack} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -1436,7 +1436,7 @@ function DeepenProfileFlow({ plan, onBack, onSkip, onComplete }) {
   if (!q) return null;
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "22px 24px 26px", zIndex: 45 }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 45 }}>
       <style>{OB_KEYFRAMES}</style>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
         <button onClick={back} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -2110,7 +2110,7 @@ function BreakdownFlow({ original, onExit, onApply }) {
 
   if (done) {
     return (
-      <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", padding: "26px 22px", zIndex: 45 }}>
+      <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", padding: "max(26px, env(safe-area-inset-top)) 22px max(26px, env(safe-area-inset-bottom))", zIndex: 45 }}>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button onClick={onExit} aria-label="Close" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><X size={16} color={T.ink} /></button>
         </div>
@@ -2131,7 +2131,7 @@ function BreakdownFlow({ original, onExit, onApply }) {
 
   const s = BREAKDOWN_STEPS[step];
   return (
-    <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", padding: "26px 22px", zIndex: 45 }}>
+    <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", padding: "max(26px, env(safe-area-inset-top)) 22px max(26px, env(safe-area-inset-bottom))", zIndex: 45 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
         <button onClick={() => (step === 0 ? onExit() : setStep((x) => x - 1))} aria-label="Close" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           {step === 0 ? <X size={16} color={T.ink} /> : <ChevronLeft size={16} color={T.ink} />}
@@ -2239,7 +2239,7 @@ function OnboardingFlow({ onBack, onComplete }) {
 
   if (phase === "pathChoice") {
     return (
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "22px 24px 26px", zIndex: 40 }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
         <style>{OB_KEYFRAMES}</style>
         <button onClick={() => setPhase("philosophy")} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 14 }}>
           <ArrowLeft size={16} color={T.ink} />
@@ -2271,7 +2271,7 @@ function OnboardingFlow({ onBack, onComplete }) {
       setQIndex(0);
     };
     return (
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "22px 24px 26px", zIndex: 40 }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
         <style>{OB_KEYFRAMES}</style>
         <button onClick={() => setPhase("pathChoice")} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 14 }}>
           <ArrowLeft size={16} color={T.ink} />
@@ -2297,7 +2297,7 @@ function OnboardingFlow({ onBack, onComplete }) {
 
   if (phase === "promiseMotivation") {
     return (
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "22px 24px 26px", zIndex: 40 }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
         <style>{OB_KEYFRAMES}</style>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
           <button onClick={() => { setPhase("trustBaseline"); setQIndex(TRUST_BASELINE_QUESTIONS.length - 1); }} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -2333,7 +2333,7 @@ function OnboardingFlow({ onBack, onComplete }) {
   if (phase === "processing") {
     const pct = ((lineIdx + 1) / PROCESSING_LINES.length) * 100;
     return (
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px", zIndex: 40 }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "max(0px, env(safe-area-inset-top)) 32px max(0px, env(safe-area-inset-bottom))", zIndex: 40 }}>
         <style>{OB_KEYFRAMES}</style>
         <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 22, color: T.ink, margin: "0 0 36px" }}>Building your Journi{answers.name ? `, ${answers.name}` : ""}…</h2>
         <div style={{ position: "relative", width: "100%", height: 6, background: T.ring, borderRadius: 999, marginBottom: 46 }}>
@@ -2351,7 +2351,7 @@ function OnboardingFlow({ onBack, onComplete }) {
     const focus = plan.successLooksLike || plan.goalDetail || plan.goal || "Keep your promises to yourself.";
     const todayText = capitalize(plan.week[0].text.replace(/^Promise to /, ""));
     return (
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 40%)`, display: "flex", flexDirection: "column", padding: "50px 22px 34px", zIndex: 40, overflowY: "auto" }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.tealPale}, ${T.bg} 40%)`, display: "flex", flexDirection: "column", padding: "max(50px, env(safe-area-inset-top)) 22px max(34px, env(safe-area-inset-bottom))", zIndex: 40, overflowY: "auto" }}>
         <style>{OB_KEYFRAMES}</style>
         <div style={{ textAlign: "center", marginBottom: 18 }}>
           <div style={{ animation: "jBounce 2s ease-in-out infinite", display: "inline-block" }}><Pip size={80} mood="happy" /></div>
@@ -2534,7 +2534,7 @@ function OnboardingFlow({ onBack, onComplete }) {
     const daysCanAdvance = weekdaySubStep === "days" ? count > 0 : !!anchorDay;
 
     return (
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "22px 24px 26px", zIndex: 40 }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
         <style>{OB_KEYFRAMES}</style>
         <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: T.inkFaint, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>Part 2 · Your Journey</p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
@@ -2603,7 +2603,7 @@ function OnboardingFlow({ onBack, onComplete }) {
 
   if (q.type === "motivation") {
     return (
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "22px 24px 26px", zIndex: 40 }}>
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 55%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
         <style>{OB_KEYFRAMES}</style>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
           <button onClick={back} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -4456,7 +4456,7 @@ function StuckFlow({ onExit, promise, plan, onPromiseKept, onEvidence, trust }) 
 
   const isLast = stepIndex === TOTAL - 1;
   return (
-    <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", padding: "22px 20px 26px", zIndex: 30 }}>
+    <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 20px max(26px, env(safe-area-inset-bottom))", zIndex: 30 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={back} aria-label={stepIndex === 0 ? "Close" : "Go back"} style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           {stepIndex === 0 ? <X size={16} color={T.ink} /> : <ChevronLeft size={17} color={T.ink} />}
