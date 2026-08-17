@@ -2470,7 +2470,7 @@ function OnboardingFlow({ onBack, onComplete }) {
             padding: "15px 16px", borderRadius: 16, border: `1.5px solid ${active ? T.teal : T.line}`,
             background: active ? T.tealPale : T.surface, cursor: "pointer", textAlign: "left",
             fontSize: 14, fontWeight: 700, color: active ? T.tealDeep : T.ink,
-            boxShadow: active ? "none" : "0 1px 2px rgba(38,51,62,0.04)",
+            boxShadow: active ? "none" : "0 1px 2px rgba(38,51,62,0.04)", minWidth: 0, wordBreak: "break-word",
           }}>{o}</button>
         );
       })}
@@ -2486,7 +2486,7 @@ function OnboardingFlow({ onBack, onComplete }) {
             padding: "13px 14px", borderRadius: 16, border: `1.5px solid ${active ? T.teal : T.line}`,
             background: active ? T.tealPale : T.surface, cursor: "pointer", textAlign: "left",
             fontSize: 13.5, fontWeight: 700, color: active ? T.tealDeep : T.ink,
-            display: "flex", alignItems: "center", gap: 8,
+            display: "flex", alignItems: "center", gap: 8, minWidth: 0, wordBreak: "break-word",
           }}>
             <span style={{ width: 16, height: 16, borderRadius: 5, border: `1.5px solid ${active ? T.teal : T.inkFaint}`, background: active ? T.teal : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               {active && <Check size={11} color="#fff" />}
@@ -2654,7 +2654,7 @@ function OnboardingFlow({ onBack, onComplete }) {
     !!answers[q.key];
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "22px 24px 26px", zIndex: 40 }}>
+    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
       <style>{OB_KEYFRAMES}</style>
       <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: T.inkFaint, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>
         {phase === "part1" ? "Part 1 · About You" : phase === "trustBaseline" ? "Self-Trust Check-In" : "Part 2 · Your Journey"}
