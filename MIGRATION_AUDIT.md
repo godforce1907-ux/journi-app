@@ -53,3 +53,9 @@ The original `window.storage` API enforces limits per-key (documented at up to 5
 The one real environment-behavior mismatch found — StrictMode's dev-mode double-invocation exposing one non-idempotent effect — has been resolved at the scaffold level, with the underlying fragility in `App.jsx` documented rather than silently patched around, so it can be addressed properly (a one-line `useRef` guard) whenever StrictMode is re-enabled.
 
 **JOURNI is ready to run on any standard React/Vite development environment, before a backend is connected.**
+
+---
+
+## Coach responses
+
+The coach uses keyword-matched templates, not adaptive AI. It can route to relevant categories (energy, time, doubt, resistance, overwhelm) based on keywords, but cannot understand full sentence intent — e.g. it won't recognize when a user proposes an alternative plan (like "I'll do it tomorrow instead") and respond to that specific offer. Fixing this properly would require replacing the template system with a real AI model call (e.g. Claude API) with conversation context. Deferred until post-validation.
