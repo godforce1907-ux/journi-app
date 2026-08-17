@@ -4037,7 +4037,7 @@ const COACH_REPLY_CATEGORIES = {
 };
 
 function getCoachReply(userInput, replyHistory) {
-  const lowerInput = userInput.toLowerCase();
+  const lowerInput = userInput.toLowerCase().replace(/['']/g, "'");
   const matchedCategory = Object.entries(COACH_REPLY_CATEGORIES).find(
     ([key, cat]) => key !== "general" && cat.keywords.some((kw) => lowerInput.includes(kw))
   );
