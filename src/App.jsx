@@ -2654,7 +2654,7 @@ function OnboardingFlow({ onBack, onComplete }) {
     !!answers[q.key];
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
+    <div style={{ position: "absolute", inset: 0, height: "100%", background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
       <style>{OB_KEYFRAMES}</style>
       <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: T.inkFaint, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>
         {phase === "part1" ? "Part 1 · About You" : phase === "trustBaseline" ? "Self-Trust Check-In" : "Part 2 · Your Journey"}
@@ -2669,8 +2669,8 @@ function OnboardingFlow({ onBack, onComplete }) {
         <button onClick={skip} style={{ background: "none", border: "none", fontSize: 12.5, fontWeight: 700, color: T.inkFaint, cursor: "pointer" }}>Skip</button>
       </div>
 
-      <div key={qIndex} style={{ flex: 1, overflowY: "auto", animation: "jSlideIn .35s ease" }}>
-        <div style={{ display: "flex", justifyContent: "center", margin: "10px 0 18px" }}>
+      <div key={qIndex} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", justifyContent: "center", animation: "jSlideIn .35s ease" }}>
+        <div style={{ display: "flex", justifyContent: "center", margin: "0 0 14px" }}>
           <Pip size={64} mood={qIndex === currentQuestions.length - 1 ? "happy" : "soft"} />
         </div>
         {qIndex > 0 && (() => {
@@ -2678,13 +2678,13 @@ function OnboardingFlow({ onBack, onComplete }) {
           const ack = getAcknowledgment(prevQ.key, answers[prevQ.key], answers);
           if (!ack) return null;
           return (
-            <Card style={{ marginBottom: 16, background: T.tealPale }}>
+            <Card style={{ marginBottom: 12, background: T.tealPale }}>
               <p style={{ margin: 0, fontSize: 13, color: T.tealDeep, lineHeight: 1.55, fontFamily: "'Fraunces', serif", fontStyle: "italic" }}>{ack}</p>
             </Card>
           );
         })()}
         <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 21, color: T.ink, textAlign: "center", margin: "0 0 8px", lineHeight: 1.3 }}>{q.heading}</h2>
-        {q.subtitle && <p style={{ textAlign: "center", color: T.inkSoft, fontSize: 13.5, margin: "0 0 22px" }}>{q.subtitle}</p>}
+        {q.subtitle && <p style={{ textAlign: "center", color: T.inkSoft, fontSize: 13.5, margin: "0 0 16px" }}>{q.subtitle}</p>}
 
         {q.type === "choice" && <ChoiceList cols={q.cols || (q.options.length > 4 ? 2 : 1)} />}
 
