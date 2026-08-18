@@ -2669,7 +2669,7 @@ function OnboardingFlow({ onBack, onComplete }) {
         <button onClick={skip} style={{ background: "none", border: "none", fontSize: 12.5, fontWeight: 700, color: T.inkFaint, cursor: "pointer" }}>Skip</button>
       </div>
 
-      <div key={qIndex} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", justifyContent: "center", animation: "jSlideIn .35s ease" }}>
+      <div key={qIndex} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", animation: "jSlideIn .35s ease" }}>
         <div style={{ display: "flex", justifyContent: "center", margin: "0 0 14px" }}>
           <Pip size={64} mood={qIndex === currentQuestions.length - 1 ? "happy" : "soft"} />
         </div>
