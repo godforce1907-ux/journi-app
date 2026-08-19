@@ -1,4 +1,10 @@
 import ReactDOM from "react-dom/client";
+import { Capacitor } from "@capacitor/core";
+import { Keyboard } from "@capacitor/keyboard";
+
+if (Capacitor.isNativePlatform()) {
+  Keyboard.setResizeMode({ mode: "none" });
+}
 
 async function startApp() {
   // Must run before App.jsx's module code executes any storage calls.
