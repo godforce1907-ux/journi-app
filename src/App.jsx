@@ -2160,6 +2160,136 @@ const OB_KEYFRAMES = `
 @keyframes jBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 `;
 
+const ONBOARDING_STYLES = `
+.onboarding-question-screen {
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: max(12px, env(safe-area-inset-top)) 24px max(12px, env(safe-area-inset-bottom));
+}
+.onboarding-question-header {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.onboarding-section-label {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: ${T.inkFaint};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.onboarding-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.onboarding-progress-row button {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+.onboarding-progress-row .onboarding-skip {
+  flex: 0 0 auto;
+  width: auto;
+  height: 36px;
+  padding: 0 2px;
+}
+.onboarding-progress {
+  flex: 1;
+  height: 5px;
+}
+.onboarding-question-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: clamp(6px, 1.6vh, 14px);
+}
+.onboarding-illustration {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  margin: 0 0 clamp(5px, 1.2vh, 10px);
+}
+.onboarding-illustration svg {
+  width: clamp(70px, 12vh, 88px);
+  height: clamp(70px, 12vh, 88px);
+}
+.onboarding-question-heading {
+  flex: 0 0 auto;
+  margin: 0 0 6px;
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: clamp(19px, 2.7vh, 21px);
+  line-height: 1.25;
+  color: ${T.ink};
+  text-align: center;
+}
+.onboarding-question-subtitle {
+  flex: 0 0 auto;
+  margin: 0 0 clamp(10px, 1.8vh, 16px);
+  color: ${T.inkSoft};
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+.onboarding-answer-list {
+  flex: 0 1 auto;
+  display: grid;
+  gap: clamp(8px, 1.4vh, 12px);
+}
+.onboarding-answer-card {
+  min-height: clamp(64px, 8.5vh, 76px);
+  box-sizing: border-box;
+  padding: 12px 16px !important;
+  display: flex;
+  align-items: center;
+}
+.onboarding-question-cta {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-top: clamp(10px, 2vh, 16px);
+}
+.onboarding-question-cta button {
+  min-height: 52px;
+  padding: 12px 18px;
+}
+@media (max-height: 720px) {
+  .onboarding-question-screen {
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .onboarding-question-content {
+    padding-top: 4px;
+  }
+  .onboarding-illustration {
+    margin-bottom: 4px;
+  }
+  .onboarding-illustration svg {
+    width: 70px;
+    height: 70px;
+  }
+  .onboarding-answer-card {
+    min-height: 64px;
+  }
+  .onboarding-question-cta {
+    padding-top: 8px;
+  }
+}
+@media (min-height: 820px) {
+  .onboarding-question-screen {
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+`;
+
 function OnboardingFlow({ onBack, onComplete }) {
   const [qIndex, setQIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -2462,12 +2592,12 @@ function OnboardingFlow({ onBack, onComplete }) {
   }
 
   const ChoiceList = ({ cols = 1 }) => (
-    <div style={{ display: "grid", gridTemplateColumns: cols === 1 ? "1fr" : "1fr 1fr", gap: 10 }}>
+    <div className="onboarding-answer-list" style={{ gridTemplateColumns: cols === 1 ? "1fr" : "1fr 1fr" }}>
       {q.options.map((o) => {
         const active = answers[q.key] === o;
         return (
-          <button key={o} onClick={() => setAnswer(o)} style={{
-            padding: "15px 16px", borderRadius: 16, border: `1.5px solid ${active ? T.teal : T.line}`,
+          <button key={o} className="onboarding-answer-card" onClick={() => setAnswer(o)} style={{
+            borderRadius: 16, border: `1.5px solid ${active ? T.teal : T.line}`,
             background: active ? T.tealPale : T.surface, cursor: "pointer", textAlign: "left",
             fontSize: 14, fontWeight: 700, color: active ? T.tealDeep : T.ink,
             boxShadow: active ? "none" : "0 1px 2px rgba(38,51,62,0.04)", minWidth: 0, wordBreak: "break-word",
@@ -2478,12 +2608,12 @@ function OnboardingFlow({ onBack, onComplete }) {
   );
 
   const MultiChoiceList = ({ cols = 2 }) => (
-    <div style={{ display: "grid", gridTemplateColumns: cols === 1 ? "1fr" : "1fr 1fr", gap: 10 }}>
+    <div className="onboarding-answer-list" style={{ gridTemplateColumns: cols === 1 ? "1fr" : "1fr 1fr" }}>
       {q.options.map((o) => {
         const active = (answers[q.key] || []).includes(o);
         return (
-          <button key={o} onClick={() => toggleMulti(o)} style={{
-            padding: "13px 14px", borderRadius: 16, border: `1.5px solid ${active ? T.teal : T.line}`,
+          <button key={o} className="onboarding-answer-card" onClick={() => toggleMulti(o)} style={{
+            borderRadius: 16, border: `1.5px solid ${active ? T.teal : T.line}`,
             background: active ? T.tealPale : T.surface, cursor: "pointer", textAlign: "left",
             fontSize: 13.5, fontWeight: 700, color: active ? T.tealDeep : T.ink,
             display: "flex", alignItems: "center", gap: 8, minWidth: 0, wordBreak: "break-word",
@@ -2654,24 +2784,26 @@ function OnboardingFlow({ onBack, onComplete }) {
     !!answers[q.key];
 
   return (
-    <div style={{ position: "absolute", inset: 0, height: "100%", background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(22px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom))", zIndex: 40 }}>
-      <style>{OB_KEYFRAMES}</style>
-      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: T.inkFaint, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>
+    <div className="onboarding-question-screen" style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", zIndex: 40 }}>
+      <style>{OB_KEYFRAMES + ONBOARDING_STYLES}</style>
+      <div className="onboarding-question-header">
+      <p className="onboarding-section-label">
         {phase === "part1" ? "Part 1 · About You" : phase === "trustBaseline" ? "Self-Trust Check-In" : "Part 2 · Your Journey"}
       </p>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-        <button onClick={back} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+      <div className="onboarding-progress-row">
+        <button onClick={back} aria-label="Go back" style={{ background: T.surface, border: "none", borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <ArrowLeft size={16} color={T.ink} />
         </button>
-        <div style={{ flex: 1, height: 6, borderRadius: 999, background: T.ring, overflow: "hidden" }}>
+        <div className="onboarding-progress" style={{ borderRadius: 999, background: T.ring, overflow: "hidden" }}>
           <div style={{ width: `${((qIndex + 1) / currentQuestions.length) * 100}%`, height: "100%", background: T.teal, borderRadius: 999, transition: "width .3s" }} />
         </div>
-        <button onClick={skip} style={{ background: "none", border: "none", fontSize: 12.5, fontWeight: 700, color: T.inkFaint, cursor: "pointer" }}>Skip</button>
+        <button className="onboarding-skip" onClick={skip} style={{ background: "none", border: "none", fontSize: 12.5, fontWeight: 700, color: T.inkFaint, cursor: "pointer" }}>Skip</button>
+      </div>
       </div>
 
-      <div key={qIndex} style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", animation: "jSlideIn .35s ease" }}>
-        <div style={{ display: "flex", justifyContent: "center", margin: "0 0 14px" }}>
-          <Pip size={64} mood={qIndex === currentQuestions.length - 1 ? "happy" : "soft"} />
+      <div className="onboarding-question-content" key={qIndex} style={{ animation: "jSlideIn .35s ease" }}>
+        <div className="onboarding-illustration">
+          <Pip size={88} mood={qIndex === currentQuestions.length - 1 ? "happy" : "soft"} />
         </div>
         {qIndex > 0 && (() => {
           const prevQ = currentQuestions[qIndex - 1];
@@ -2683,8 +2815,8 @@ function OnboardingFlow({ onBack, onComplete }) {
             </Card>
           );
         })()}
-        <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 21, color: T.ink, textAlign: "center", margin: "0 0 8px", lineHeight: 1.3 }}>{q.heading}</h2>
-        {q.subtitle && <p style={{ textAlign: "center", color: T.inkSoft, fontSize: 13.5, margin: "0 0 16px" }}>{q.subtitle}</p>}
+        <h2 className="onboarding-question-heading">{q.heading}</h2>
+        {q.subtitle && <p className="onboarding-question-subtitle">{q.subtitle}</p>}
 
         {q.type === "choice" && <ChoiceList cols={q.cols || (q.options.length > 4 ? 2 : 1)} />}
 
@@ -2702,7 +2834,7 @@ function OnboardingFlow({ onBack, onComplete }) {
         )}
 
         {q.type === "shortText" && (
-          <Card>
+          <Card style={{ padding: 13 }}>
             <input
               autoFocus type="text" placeholder={q.placeholder || "Type your answer…"} value={answers[q.key] || ""}
               onChange={(e) => setAnswer(e.target.value)}
@@ -2729,7 +2861,7 @@ function OnboardingFlow({ onBack, onComplete }) {
         )}
       </div>
 
-      <div style={{ marginTop: 14, flexShrink: 0 }}>
+      <div className="onboarding-question-cta">
         <PrimaryButton
           onClick={advance}
           disabled={!canAdvance}
@@ -5099,10 +5231,10 @@ export default function JourniApp() {
   const showNav = phase === "app" && !showingWelcomeBack && !showingIdentityRecap && screen !== "stuck" && screen !== "coach" && screen !== "breakdown";
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", padding: "20px 0", background: "#DCE6EA", minHeight: 720, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: fullBleed ? "center" : "flex-start", padding: fullBleed ? "8px 0" : "20px 0", background: "#DCE6EA", minHeight: "100dvh", boxSizing: "border-box", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <style>{FONT_IMPORT}</style>
       <div style={{
-        width: 390, height: 780, background: T.bg, borderRadius: 46, position: "relative",
+        width: 390, height: fullBleed ? "min(780px, calc(100dvh - 16px))" : 780, background: T.bg, borderRadius: 46, position: "relative",
         overflow: "hidden", boxShadow: "0 30px 60px rgba(20,30,38,0.25)", border: "8px solid #16202A",
       }}>
         <div style={{ height: "100%", overflowY: fullBleed ? "hidden" : "auto", padding: fullBleed ? 0 : "18px 18px 0" }}>
