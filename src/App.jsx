@@ -891,7 +891,7 @@ function MeetCoachScreen({ onBack, onContinue, name }) {
       <button onClick={onBack} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", alignSelf: "flex-start" }}>
         <ArrowLeft size={16} color={T.ink} />
       </button>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingTop: 20, paddingBottom: 20 }}>
         <Pip size={100} mood="happy" />
         <h1 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 25, color: T.ink, margin: "22px 0 14px" }}>{name ? `Nice to meet you, ${name}.` : "Meet Journi"}</h1>
         <Card style={{ textAlign: "left" }}>
@@ -909,7 +909,9 @@ function MeetCoachScreen({ onBack, onContinue, name }) {
           </p>
         </Card>
       </div>
-      <PrimaryButton onClick={onContinue}>Continue</PrimaryButton>
+      <div style={{ flexShrink: 0 }}>
+        <PrimaryButton onClick={onContinue}>Continue</PrimaryButton>
+      </div>
     </div>
   );
 }
@@ -1076,7 +1078,7 @@ function PromiseCeremonyScreen({ onComplete, plan }) {
       </>)}
 
       {step === "confirming" && confirmedAt && (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
           <div style={{
             position: "absolute", width: 220, height: 220, borderRadius: "50%",
             background: `radial-gradient(circle, ${T.tealPale} 0%, transparent 70%)`,
@@ -1322,7 +1324,7 @@ function WeeklyReviewScreen({ onBack, onComplete, plan, onEvidence }) {
             <ArrowLeft size={16} color={T.ink} />
           </button>
         </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", alignItems: "center" }}>
           <Pip size={40} mood="soft" />
         </div>
       </div>
@@ -2114,7 +2116,7 @@ function BreakdownFlow({ original, onExit, onApply }) {
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button onClick={onExit} aria-label="Close" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><X size={16} color={T.ink} /></button>
         </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", gap: 16 }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 16 }}>
           <Pip size={64} mood="soft" />
           <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: T.inkFaint, textTransform: "uppercase", letterSpacing: 0.4 }}>Original promise</p>
           <p style={{ margin: 0, fontSize: 14, color: T.inkSoft, textDecoration: "line-through" }}>{original}</p>
@@ -2124,7 +2126,9 @@ function BreakdownFlow({ original, onExit, onApply }) {
           </Card>
           <p style={{ margin: 0, fontSize: 12.5, color: T.inkSoft, maxWidth: 260 }}>This still counts. Progress isn't about perfection — it's about keeping the promise you actually made.</p>
         </div>
-        <PrimaryButton onClick={() => onApply(rewritten)}>Use this promise</PrimaryButton>
+        <div style={{ flexShrink: 0 }}>
+          <PrimaryButton onClick={() => onApply(rewritten)}>Use this promise</PrimaryButton>
+        </div>
       </div>
     );
   }
@@ -2374,7 +2378,7 @@ function OnboardingFlow({ onBack, onComplete }) {
         <button onClick={() => setPhase("philosophy")} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 14 }}>
           <ArrowLeft size={16} color={T.ink} />
         </button>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", animation: "jSlideIn .4s ease" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", animation: "jSlideIn .4s ease" }}>
           <Pip size={64} mood="soft" />
           <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 21, color: T.ink, margin: "18px 0 10px", lineHeight: 1.3 }}>How would you like to begin?</h2>
           <p style={{ fontSize: 13.5, color: T.inkSoft, lineHeight: 1.6, maxWidth: 280, margin: "0 auto 26px" }}>Both paths lead to the same place — this is just about what feels right today.</p>
