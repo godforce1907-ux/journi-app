@@ -2166,6 +2166,7 @@ const OB_KEYFRAMES = `
 
 const ONBOARDING_STYLES = `
 .onboarding-question-screen {
+  position: relative;
   height: 100%;
   min-height: 0;
   box-sizing: border-box;
@@ -2212,8 +2213,17 @@ const ONBOARDING_STYLES = `
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
   padding-top: clamp(6px, 1.6vh, 14px);
+}
+.onboarding-scroll-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  background: linear-gradient(to bottom, transparent, ${T.bg});
+  pointer-events: none;
 }
 .onboarding-illustration {
   flex: 0 0 auto;
@@ -2864,6 +2874,8 @@ function OnboardingFlow({ onBack, onComplete }) {
           </Card>
         )}
       </div>
+
+      <div className="onboarding-scroll-fade" />
 
       <div className="onboarding-question-cta">
         <PrimaryButton
