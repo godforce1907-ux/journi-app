@@ -4868,7 +4868,8 @@ async function loadAppStateSnapshot() {
     const res = await window.storage.get(APPSTATE_KEY, false);
     return res ? JSON.parse(res.value) : null;
   } catch (e) {
-    return null;
+    if (e instanceof Error && e.message === `Key not found: ${APPSTATE_KEY}`) return null;
+    throw e;
   }
 }
 async function saveAppStateSnapshot(snapshot) {
@@ -4939,10 +4940,15 @@ export default function JourniApp() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      await supabase.auth.getSession();
       const sessionCheck = await supabase.auth.getSession();
       const profile = await loadUserProfile();
-      const savedSnapshot = await loadAppStateSnapshot();
+      let savedSnapshot = null;
+      let snapshotLoadFailed = false;
+      try {
+        savedSnapshot = await loadAppStateSnapshot();
+      } catch (e) {
+        snapshotLoadFailed = true;
+      }
       if (cancelled) return;
       if (savedSnapshot?.state) {
         setState((s) => ({ ...s, ...savedSnapshot.state }));
@@ -4951,10 +4957,14 @@ export default function JourniApp() {
       setAuthProfile(profile);
       const now = new Date();
       const sessionValid = !profile || !profile.sessionExpiresAt || new Date(profile.sessionExpiresAt) > now;
+      const hasLiveSession = !!sessionCheck?.data?.session;
       let next = "welcome";
       let needsReauth = false;
-      if (profile) {
-        if (!sessionValid) { next = "signin"; needsReauth = true; }
+      if (snapshotLoadFailed) {
+        next = "signin";
+        needsReauth = true;
+      } else if (profile) {
+        if (!hasLiveSession || !sessionValid) { next = "signin"; needsReauth = true; }
         else if (savedSnapshot?.state?.plan) next = "app";
         else next = "onboarding";
       }
