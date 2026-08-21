@@ -2894,6 +2894,7 @@ function OnboardingFlow({ onBack, onComplete }) {
 --------------------------------------------------------- */
 function HomeScreen({ go, state, setState, onEvidence }) {
   const [streak, setStreak] = useState(0);
+  const [currentDay, setCurrentDay] = useState(1);
   const [offerWeeklyReview, setOfferWeeklyReview] = useState(false);
   const [offerDeepen, setOfferDeepen] = useState(false);
 
@@ -2902,6 +2903,9 @@ function HomeScreen({ go, state, setState, onEvidence }) {
     (async () => {
       const t = await loadEvidenceTimeline();
       const ceremony = await loadPromiseCeremony();
+      if (ceremony?.dateISO) {
+        setCurrentDay(daysSince(ceremony.dateISO) + 1);
+      }
       if (cancelled) return;
       setStreak(selectStreak(t));
       setOfferWeeklyReview(selectShouldOfferWeeklyReview(t, ceremony?.dateISO));
@@ -2960,7 +2964,7 @@ function HomeScreen({ go, state, setState, onEvidence }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: 12.5, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>
-              Today's promise{state.plan ? ` · Day 1 of 7` : ""}
+              Today's promise{state.plan ? ` · Day ${currentDay} of 7` : ""}
             </p>
             <h2 style={{ margin: "8px 0 0", fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 21, color: "#fff" }}>{state.promise}</h2>
           </div>
