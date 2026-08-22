@@ -4873,7 +4873,12 @@ async function loadAppStateSnapshot() {
   }
 }
 async function saveAppStateSnapshot(snapshot) {
-  try { await window.storage.set(APPSTATE_KEY, JSON.stringify(snapshot), false); } catch (e) { /* best-effort */ }
+  try {
+    await window.storage.set(APPSTATE_KEY, JSON.stringify(snapshot), false);
+  } catch (e) {
+    console.error("Failed to save app state snapshot:", e);
+    throw e;
+  }
 }
 
 /* Session length for the simulated auth layer */
@@ -5033,7 +5038,10 @@ export default function JourniApp() {
   useEffect(() => {
     if (!bootstrapDone) return;
     if (phase !== "app" && phase !== "onboarding") return;
-    saveAppStateSnapshot({ state, christianMode });
+    saveAppStateSnapshot({ state, christianMode }).catch((e) => {
+      console.error("Failed to save app state snapshot:", e);
+      showCelebration("Couldn't save your progress — please try again.");
+    });
   }, [state, christianMode, phase, bootstrapDone]);
 
   useEffect(() => {
