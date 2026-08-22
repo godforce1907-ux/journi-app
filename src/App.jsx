@@ -4951,6 +4951,8 @@ export default function JourniApp() {
       let snapshotLoadFailed = false;
       try {
         savedSnapshot = await loadAppStateSnapshot();
+        // TEMP DEBUG - REMOVE LATER
+        console.log("TEMP DEBUG: Loaded snapshot:", JSON.stringify(savedSnapshot));
       } catch (e) {
         snapshotLoadFailed = true;
       }
@@ -4965,6 +4967,8 @@ export default function JourniApp() {
       const hasLiveSession = !!sessionCheck?.data?.session;
       let next = "welcome";
       let needsReauth = false;
+      // TEMP DEBUG - REMOVE LATER
+      console.log("TEMP DEBUG: snapshotLoadFailed:", snapshotLoadFailed, "hasLiveSession:", hasLiveSession, "sessionValid:", sessionValid);
       if (snapshotLoadFailed) {
         next = "signin";
         needsReauth = true;
@@ -5038,7 +5042,10 @@ export default function JourniApp() {
   useEffect(() => {
     if (!bootstrapDone) return;
     if (phase !== "app" && phase !== "onboarding") return;
-    saveAppStateSnapshot({ state, christianMode }).catch((e) => {
+    saveAppStateSnapshot({ state, christianMode }).then(() => {
+      // TEMP DEBUG - REMOVE LATER
+      console.log("TEMP DEBUG: Saved snapshot with plan:", state.plan);
+    }).catch((e) => {
       console.error("Failed to save app state snapshot:", e);
       showCelebration("Couldn't save your progress — please try again.");
     });

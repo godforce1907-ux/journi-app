@@ -2,6 +2,36 @@ import ReactDOM from "react-dom/client";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 
+// TEMP DEBUG - REMOVE BEFORE FINAL RELEASE
+// On-screen overlay for TEMP DEBUG console output, so logs can be read without Safari's remote inspector.
+const debugLogs = [];
+const origLog = console.log;
+const origError = console.error;
+function renderDebugPanel() {
+  let panel = document.getElementById("temp-debug-panel");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "temp-debug-panel";
+    panel.style.cssText = "position:fixed;top:0;left:0;right:0;max-height:50vh;overflow-y:auto;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:999999;white-space:pre-wrap;";
+    document.body.appendChild(panel);
+  }
+  panel.textContent = debugLogs.join("\n\n");
+}
+console.log = (...args) => {
+  origLog(...args);
+  const msg = args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ");
+  if (msg.includes("TEMP DEBUG")) {
+    debugLogs.push(msg);
+    renderDebugPanel();
+  }
+};
+console.error = (...args) => {
+  origError(...args);
+  const msg = args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ");
+  debugLogs.push("ERROR: " + msg);
+  renderDebugPanel();
+};
+
 if (Capacitor.isNativePlatform()) {
   Keyboard.setResizeMode({ mode: "none" });
 }
