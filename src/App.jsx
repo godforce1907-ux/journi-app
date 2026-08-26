@@ -700,7 +700,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
   };
 
   const verifyOtp = async () => {
-    if (otp.trim().length !== 6) { setError("Enter the 6-digit code."); return; }
+    if (otp.trim().length !== 8) { setError("Enter the 8-digit code."); return; }
     setError("");
     const { data, error: verifyError } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
     if (verifyError) { setError(verifyError.message); return; }
@@ -767,11 +767,11 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
 
         {mode === "otp" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <p style={{ textAlign: "center", fontSize: 13, color: T.inkSoft, lineHeight: 1.6 }}>Enter the 6-digit code sent to<br /><strong style={{ color: T.ink }}>{email}</strong></p>
+            <p style={{ textAlign: "center", fontSize: 13, color: T.inkSoft, lineHeight: 1.6 }}>Enter the 8-digit code sent to<br /><strong style={{ color: T.ink }}>{email}</strong></p>
             <input
-              type="text" inputMode="numeric" maxLength={6} autoFocus value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="000000"
+              type="text" inputMode="numeric" maxLength={8} autoFocus value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))}
+              placeholder="00000000"
               style={{ width: "100%", border: `1.5px solid ${T.line}`, borderRadius: 12, padding: "14px", fontSize: 22, letterSpacing: 8, textAlign: "center", fontFamily: "'Fraunces', serif", outline: "none" }}
             />
             {error && <p style={{ margin: 0, fontSize: 12, color: T.sand, fontWeight: 600, textAlign: "center" }}>{error}</p>}
