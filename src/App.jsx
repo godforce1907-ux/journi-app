@@ -696,7 +696,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
     setError("");
     const { error: sendError } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
     if (sendError) { setError(sendError.message); return; }
-    setMode("magicSent");
+    setMode("otp");
   };
 
   const verifyOtp = async () => {
@@ -711,7 +711,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
     <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${T.bluePale}, ${T.bg} 45%)`, display: "flex", flexDirection: "column", padding: "max(26px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom))", zIndex: 50 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         {mode !== "options" ? (
-          <button onClick={() => { setError(""); setMode(mode === "otp" || mode === "magicSent" ? "email" : "options"); }} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          <button onClick={() => { setError(""); setMode(mode === "otp" ? "email" : "options"); }} aria-label="Go back" style={{ background: T.surface, border: "none", width: 34, height: 34, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <ArrowLeft size={16} color={T.ink} />
           </button>
         ) : onBack ? (
@@ -768,9 +768,6 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
         {mode === "otp" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <p style={{ textAlign: "center", fontSize: 13, color: T.inkSoft, lineHeight: 1.6 }}>Enter the 6-digit code sent to<br /><strong style={{ color: T.ink }}>{email}</strong></p>
-            <Card style={{ background: T.sandPale }}>
-              <p style={{ margin: 0, fontSize: 11.5, color: "#8A5528" }}>Demo mode — no real email is sent. Your code is <strong>{demoCode}</strong>.</p>
-            </Card>
             <input
               type="text" inputMode="numeric" maxLength={6} autoFocus value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -779,17 +776,6 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
             />
             {error && <p style={{ margin: 0, fontSize: 12, color: T.sand, fontWeight: 600, textAlign: "center" }}>{error}</p>}
             <PrimaryButton onClick={verifyOtp}>Verify & continue</PrimaryButton>
-          </div>
-        )}
-
-        {mode === "magicSent" && (
-          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: 14, alignItems: "center" }}>
-            <Pip size={50} mood="soft" />
-            <p style={{ fontSize: 13.5, color: T.inkSoft, lineHeight: 1.6, maxWidth: 240 }}>We've sent a magic link to <strong style={{ color: T.ink }}>{email}</strong>.</p>
-            <Card style={{ background: T.sandPale, width: "100%" }}>
-              <p style={{ margin: 0, fontSize: 11.5, color: "#8A5528" }}>Demo mode — no real email is sent. Tap below to simulate clicking the link.</p>
-            </Card>
-            <p style={{ fontSize: 12.5, color: T.inkFaint }}>Once you click the link in your email, this page will automatically continue — no need to come back here.</p>
           </div>
         )}
 
