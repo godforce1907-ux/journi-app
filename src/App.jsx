@@ -4093,77 +4093,80 @@ function ReminderSettingsScreen({ onBack, plan, authProfile, onSave }) {
   };
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <TopBar title="Reminder times" onBack={onBack} />
-      <Card style={{ display: "flex", gap: 12, alignItems: "flex-start", background: T.bluePale }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Sparkles size={18} color="#3A6690" />
-        </div>
-        <p style={{ margin: 0, fontSize: 13, color: "#3A6690", lineHeight: 1.6 }}>
-          Daily reminders help you show up for your promise when motivation is low. Choose the time that fits your natural rhythm.
-        </p>
-      </Card>
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <Card style={{ display: "flex", gap: 12, alignItems: "flex-start", background: T.bluePale }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Sparkles size={18} color="#3A6690" />
+          </div>
+          <p style={{ margin: 0, fontSize: 13, color: "#3A6690", lineHeight: 1.6 }}>
+            Daily reminders help you show up for your promise when motivation is low. Choose the time that fits your natural rhythm.
+          </p>
+        </Card>
 
-      <SectionTitle>When should we remind you?</SectionTitle>
-      <Card style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {options.map((opt) => {
-          const isSelected = selected === opt;
-          const descriptions = {
-            "Morning": "Around 8 AM — start your day with your promise",
-            "Afternoon": "Around 1 PM — reset and refocus",
-            "Evening": "Around 6 PM — prepare for tomorrow",
-            "Only when I miss a promise": "Get a reminder only when you need support",
-            "No reminders": "I'll remember on my own",
-          };
-          return (
-            <button
-              key={opt}
-              onClick={() => setSelected(opt)}
-              style={{
-                textAlign: "left",
-                padding: "13px 14px",
-                borderRadius: 16,
-                border: `1.5px solid ${isSelected ? T.teal : T.line}`,
-                background: isSelected ? T.tealPale : T.surface,
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: "50%",
-                    border: `2px solid ${isSelected ? T.teal : T.line}`,
-                    background: isSelected ? T.teal : "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  {isSelected && <Check size={10} color="#fff" />}
-                </span>
-                <div>
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: T.ink }}>{opt}</p>
-                  <p style={{ margin: "2px 0 0", fontSize: 11.5, color: T.inkSoft }}>{descriptions[opt]}</p>
+        <SectionTitle>When should we remind you?</SectionTitle>
+        <Card style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {options.map((opt) => {
+            const isSelected = selected === opt;
+            const descriptions = {
+              "Morning": "Around 8 AM — start your day with your promise",
+              "Afternoon": "Around 1 PM — reset and refocus",
+              "Evening": "Around 6 PM — prepare for tomorrow",
+              "Only when I miss a promise": "Get a reminder only when you need support",
+              "No reminders": "I'll remember on my own",
+            };
+            return (
+              <button
+                key={opt}
+                onClick={() => setSelected(opt)}
+                style={{
+                  textAlign: "left",
+                  padding: "13px 14px",
+                  borderRadius: 16,
+                  border: `1.5px solid ${isSelected ? T.teal : T.line}`,
+                  background: isSelected ? T.tealPale : T.surface,
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      border: `2px solid ${isSelected ? T.teal : T.line}`,
+                      background: isSelected ? T.teal : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {isSelected && <Check size={10} color="#fff" />}
+                  </span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: T.ink }}>{opt}</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 11.5, color: T.inkSoft }}>{descriptions[opt]}</p>
+                  </div>
                 </div>
-              </div>
-            </button>
-          );
-        })}
-      </Card>
+              </button>
+            );
+          })}
+        </Card>
 
-      <Card style={{ marginTop: 16, background: T.sandPale }}>
-        <p style={{ margin: 0, fontSize: 12.5, color: "#8A5528", lineHeight: 1.6 }}>
-          💡 Consistency beats intensity. Reminders are most effective when they arrive at a time you can actually act on them.
-        </p>
-      </Card>
+        <Card style={{ marginTop: 16, background: T.sandPale }}>
+          <p style={{ margin: 0, fontSize: 12.5, color: "#8A5528", lineHeight: 1.6 }}>
+            💡 Consistency beats intensity. Reminders are most effective when they arrive at a time you can actually act on them.
+          </p>
+        </Card>
 
-      <div style={{ marginTop: 16 }}>
+        <div style={{ height: 16 }} />
+      </div>
+      <div style={{ marginTop: 16, paddingBottom: 20 }}>
         <PrimaryButton onClick={handleSave}>{saved ? "✓ Saved" : "Save reminder time"}</PrimaryButton>
       </div>
-      <div style={{ height: 40 }} />
+      <div style={{ height: 90 }} />
     </div>
   );
 }
