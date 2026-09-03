@@ -2490,7 +2490,7 @@ const ONBOARDING_STYLES = `
 function OnboardingFlow({ onBack, onComplete }) {
   const [qIndex, setQIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [phase, setPhase] = useState("part1"); // part1 | meetCoach | philosophy | pathChoice | fastPathGoal | part2 | trustBaseline | promiseMotivation | processing | final | commitment
+  const [phase, setPhase] = useState("part1"); // part1 | meetCoach | philosophy | pathChoice | fastPathGoal | part2 | reminderSettings | trustBaseline | promiseMotivation | processing | final | commitment
   const [lineIdx, setLineIdx] = useState(0);
   const [plan, setPlan] = useState(null);
   const [weekdaySubStep, setWeekdaySubStep] = useState("days"); // days | anchor
@@ -2522,8 +2522,16 @@ function OnboardingFlow({ onBack, onComplete }) {
       if (qIndex === PART1_QUESTIONS.length - 1) { setPhase("meetCoach"); }
       else setQIndex((i) => i + 1);
     } else if (phase === "part2") {
-      if (qIndex === PART2_QUESTIONS.length - 1) { setPhase("trustBaseline"); setQIndex(0); }
-      else setQIndex((i) => i + 1);
+      if (qIndex === PART2_QUESTIONS.length - 1) {
+        if (answers.reminderTime === "No reminders") {
+          setPhase("trustBaseline");
+          setQIndex(0);
+        } else {
+          setPhase("reminderSettings");
+        }
+      } else {
+        setQIndex((i) => i + 1);
+      }
     } else if (phase === "trustBaseline") {
       if (qIndex === TRUST_BASELINE_QUESTIONS.length - 1) { setPhase("promiseMotivation"); }
       else setQIndex((i) => i + 1);
@@ -2537,6 +2545,9 @@ function OnboardingFlow({ onBack, onComplete }) {
     } else if (phase === "part2") {
       if (qIndex === 0) setPhase("pathChoice");
       else setQIndex((i) => i - 1);
+    } else if (phase === "reminderSettings") {
+      setPhase("part2");
+      setQIndex(PART2_QUESTIONS.length - 1);
     } else if (phase === "trustBaseline") {
       if (qIndex === 0) {
         if (answers.fastPath) setPhase("fastPathGoal");
@@ -2619,6 +2630,24 @@ function OnboardingFlow({ onBack, onComplete }) {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (phase === "reminderSettings") {
+    return (
+      <ReminderSettingsScreen
+        onBack={() => {
+          setPhase("part2");
+          setQIndex(PART2_QUESTIONS.length - 1);
+        }}
+        plan={{ reminderTime: answers.reminderTime }}
+        authProfile={null}
+        onSave={async (reminderTime) => {
+          setAnswers((a) => ({ ...a, reminderTime }));
+          setPhase("trustBaseline");
+          setQIndex(0);
+        }}
+      />
     );
   }
 
