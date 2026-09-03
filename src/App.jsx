@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { Browser } from "@capacitor/browser";
+import { App } from "@capacitor/app";
 import {
   Home, BookOpen, LifeBuoy, TrendingUp, User, ChevronRight, ChevronLeft,
   ArrowLeft, X, Check, Wind, Footprints, Moon, Sparkles, MessageCircle,
@@ -7,6 +11,109 @@ import {
   Eye, Waves, HeartPulse, Zap, Leaf, Feather, Mail, Chrome, Apple, ShieldCheck, LogOut, Star
 } from "lucide-react";
 import { supabase } from "./supabaseClient.js";
+
+/* ---------------------------------------------------------
+   NOTIFICATION SCHEDULING — Daily reminder management
+   Schedules local notifications at user's chosen time
+   (Morning/Afternoon/Evening). Runs entirely on-device.
+--------------------------------------------------------- */
+
+/* Map reminder time preference to hour (24-hour format) */
+const REMINDER_HOURS = {
+  "Morning": 8,        // 8 AM
+  "Afternoon": 13,     // 1 PM
+  "Evening": 18,       // 6 PM
+  "Only when I miss a promise": null, // Don't schedule, only on-demand
+  "No reminders": null,                // Don't schedule
+};
+
+const NOTIFICATION_ID = 19001;
+const DAILY_REMINDER_CONTENT = {
+  title: "A moment for yourself",
+  body: "What promise do you want to keep to yourself today?",
+};
+let notificationUpdate = Promise.resolve();
+
+/* Cancel all scheduled notifications with our ID */
+async function cancelScheduledNotification() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await LocalNotifications.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
+    console.log("✓ Cancelled scheduled notification");
+  } catch (error) {
+    console.log("No scheduled notification to cancel (expected on first run)");
+  }
+}
+
+/* Schedule a daily notification at the specified hour */
+async function scheduleNotification(hour) {
+  if (hour === null || !Capacitor.isNativePlatform()) return;
+
+  try {
+    let permission = await LocalNotifications.checkPermissions();
+    if (permission.display !== "granted") {
+      permission = await LocalNotifications.requestPermissions();
+    }
+    if (permission.display !== "granted") {
+      console.warn("Local notification permission was not granted");
+      return;
+    }
+
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: NOTIFICATION_ID,
+        ...DAILY_REMINDER_CONTENT,
+        sound: "default",
+        schedule: {
+          at: new Date(Date.now() + 60 * 1000),
+          repeats: false,
+        },
+      }],
+    });
+
+    const timeStr = `${String(hour).padStart(2, "0")}:00`;
+    console.log(`✓ Notification scheduled for ${timeStr} daily`);
+  } catch (error) {
+    console.error("Failed to schedule notification:", error);
+  }
+}
+
+/* Cancel old notification and schedule new one based on reminder time */
+async function updateScheduledNotification(reminderTime) {
+  notificationUpdate = notificationUpdate.then(async () => {
+    await cancelScheduledNotification();
+    const hour = REMINDER_HOURS[reminderTime];
+    if (hour !== null) await scheduleNotification(hour);
+  });
+  return notificationUpdate;
+}
+
+/* Initialize notification handler — runs once when app mounts */
+async function initializeNotifications() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const { display } = await LocalNotifications.requestPermissions();
+    console.log(`Notification permission status: ${display}`);
+  } catch (error) {
+    console.error("Failed to initialize notifications:", error);
+  }
+}
+
+async function logReminderOpened() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+    if (!userId) return;
+
+    const { error } = await supabase.from("events").insert({
+      user_id: userId,
+      event_name: "reminder_opened",
+    });
+    if (error) console.error("Failed to log reminder_opened:", error);
+  } catch (error) {
+    console.error("Failed to log reminder_opened:", error);
+  }
+}
 
 /* ---------------------------------------------------------
    DESIGN TOKENS
@@ -685,10 +792,100 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
     });
   };
 
-  const connectProvider = (provider) => {
+  const connectProvider = async (provider) => {
     setConnectingProvider(provider);
     setMode("connecting");
-    setTimeout(() => finishAuth(provider, provider === "Google" ? "you@gmail.com" : "you@icloud.com"), 900);
+    setError("");
+
+    let timeoutId;
+    let unlistenHandle;
+
+    try {
+      // Step 1: Call Supabase OAuth to get the login URL (PKCE flow)
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: "journi://auth-callback",
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (oauthError) {
+        setError(`Sign-in failed: ${oauthError.message}`);
+        setMode("options");
+        setConnectingProvider(null);
+        return;
+      }
+
+      if (!data?.url) {
+        setError("Could not generate OAuth URL");
+        setMode("options");
+        setConnectingProvider(null);
+        return;
+      }
+
+      // Step 2: Open the OAuth URL in the in-app browser
+      await Browser.open({ url: data.url });
+
+      // Step 3: Set up the deep link listener for "journi://auth-callback"
+      unlistenHandle = await App.addListener("appUrlOpen", async (event) => {
+        // Close the browser immediately when the redirect fires
+        await Browser.close();
+
+        // Clear the timeout since we got the callback
+        clearTimeout(timeoutId);
+
+        try {
+          // exchangeCodeForSession handles PKCE code exchange in one call
+          const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(event.url);
+
+          if (exchangeError) {
+            setError(`Sign-in failed: ${exchangeError.message}`);
+            setMode("options");
+            setConnectingProvider(null);
+            await unlistenHandle.remove();
+            return;
+          }
+
+          if (!sessionData?.user) {
+            setError("Failed to retrieve user data");
+            setMode("options");
+            setConnectingProvider(null);
+            await unlistenHandle.remove();
+            return;
+          }
+
+          // Step 4: Use real user data from the session
+          finishAuth(provider, sessionData.user.email);
+
+          // Clean up the listener
+          await unlistenHandle.remove();
+
+        } catch (error) {
+          console.error("Error processing OAuth callback:", error);
+          setError("An error occurred during sign-in");
+          setMode("options");
+          setConnectingProvider(null);
+          await unlistenHandle.remove();
+        }
+      });
+
+      // Step 5: Set a 2-minute timeout in case the user closes the browser without finishing
+      timeoutId = setTimeout(async () => {
+        setError("Sign-in wasn't completed");
+        setMode("options");
+        setConnectingProvider(null);
+        if (unlistenHandle) {
+          await unlistenHandle.remove();
+        }
+      }, 2 * 60 * 1000); // 2 minutes
+
+    } catch (error) {
+      console.error("OAuth initialization error:", error);
+      setError(`Sign-in failed: ${error.message}`);
+      setMode("options");
+      setConnectingProvider(null);
+    }
   };
 
   const sendCode = async () => {
@@ -3878,7 +4075,100 @@ function Toggle({ on, onClick, label }) {
   );
 }
 
-function ProfileScreen({ plan, christianMode, setChristianMode, authProfile, onLogout, go }) {
+/* ---------------------------------------------------------
+   REMINDER SETTINGS — Choose when to receive daily reminders
+   Saved to both local storage and Supabase user_profiles table
+--------------------------------------------------------- */
+function ReminderSettingsScreen({ onBack, plan, authProfile, onSave }) {
+  const [selected, setSelected] = useState(plan?.reminderTime || "No reminders");
+  const [customTime, setCustomTime] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const options = ["Morning", "Afternoon", "Evening", "Only when I miss a promise", "No reminders"];
+
+  const handleSave = async () => {
+    await onSave(selected);
+    setSaved(true);
+    setTimeout(() => { setSaved(false); onBack(); }, 1200);
+  };
+
+  return (
+    <div>
+      <TopBar title="Reminder times" onBack={onBack} />
+      <Card style={{ display: "flex", gap: 12, alignItems: "flex-start", background: T.bluePale }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Sparkles size={18} color="#3A6690" />
+        </div>
+        <p style={{ margin: 0, fontSize: 13, color: "#3A6690", lineHeight: 1.6 }}>
+          Daily reminders help you show up for your promise when motivation is low. Choose the time that fits your natural rhythm.
+        </p>
+      </Card>
+
+      <SectionTitle>When should we remind you?</SectionTitle>
+      <Card style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {options.map((opt) => {
+          const isSelected = selected === opt;
+          const descriptions = {
+            "Morning": "Around 8 AM — start your day with your promise",
+            "Afternoon": "Around 1 PM — reset and refocus",
+            "Evening": "Around 6 PM — prepare for tomorrow",
+            "Only when I miss a promise": "Get a reminder only when you need support",
+            "No reminders": "I'll remember on my own",
+          };
+          return (
+            <button
+              key={opt}
+              onClick={() => setSelected(opt)}
+              style={{
+                textAlign: "left",
+                padding: "13px 14px",
+                borderRadius: 16,
+                border: `1.5px solid ${isSelected ? T.teal : T.line}`,
+                background: isSelected ? T.tealPale : T.surface,
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    border: `2px solid ${isSelected ? T.teal : T.line}`,
+                    background: isSelected ? T.teal : "transparent",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  {isSelected && <Check size={10} color="#fff" />}
+                </span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: T.ink }}>{opt}</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 11.5, color: T.inkSoft }}>{descriptions[opt]}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </Card>
+
+      <Card style={{ marginTop: 16, background: T.sandPale }}>
+        <p style={{ margin: 0, fontSize: 12.5, color: "#8A5528", lineHeight: 1.6 }}>
+          💡 Consistency beats intensity. Reminders are most effective when they arrive at a time you can actually act on them.
+        </p>
+      </Card>
+
+      <div style={{ marginTop: 16 }}>
+        <PrimaryButton onClick={handleSave}>{saved ? "✓ Saved" : "Save reminder time"}</PrimaryButton>
+      </div>
+      <div style={{ height: 40 }} />
+    </div>
+  );
+}
+
+function ProfileScreen({ plan, christianMode, setChristianMode, authProfile, onLogout, go, onReminderTimeUpdate }) {
   const joinDate = authProfile?.joinDate ? new Date(authProfile.joinDate) : null;
   const joinLabel = joinDate ? joinDate.toLocaleDateString(undefined, { month: "long", year: "numeric" }) : "March";
   return (
@@ -3936,12 +4226,16 @@ function ProfileScreen({ plan, christianMode, setChristianMode, authProfile, onL
       )}
       <SectionTitle>Settings</SectionTitle>
       <Card pad={0}>
-        {["Notifications", "Reminder times", "Privacy", "Account", "Help & support"].map((it, i, arr) => (
+        {["Notifications", "Privacy", "Account", "Help & support"].map((it, i, arr) => (
           <div key={it} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: `1px solid ${T.line}` }}>
             <span style={{ fontSize: 14, color: T.ink, fontWeight: 600 }}>{it}</span>
             <ChevronRight size={15} color={T.inkFaint} />
           </div>
         ))}
+        <button onClick={() => go && go("reminderSettings")} style={{ width: "100%", background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", textAlign: "left", borderBottom: `1px solid ${T.line}` }}>
+          <span style={{ fontSize: 14, color: T.ink, fontWeight: 600 }}>Reminder times</span>
+          <ChevronRight size={15} color={T.inkFaint} />
+        </button>
         <button onClick={onLogout} style={{ width: "100%", background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer" }}>
           <span style={{ fontSize: 14, color: T.sand, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}><LogOut size={15} color={T.sand} /> Log out</span>
         </button>
@@ -4832,6 +5126,29 @@ async function loadUserProfile() {
 async function saveUserProfile(profile) {
   try { await window.storage.set(PROFILE_KEY, JSON.stringify(profile), false); } catch (e) { /* best-effort */ }
 }
+
+/* Save reminder time to both local storage and Supabase */
+async function saveReminderTime(reminderTime, userEmail) {
+  try {
+    // Save to local storage via authProfile
+    const profile = await loadUserProfile();
+    if (profile) {
+      profile.reminderTime = reminderTime;
+      await saveUserProfile(profile);
+    }
+    
+    // Save to Supabase user_profiles table if email is available
+    if (userEmail && supabase) {
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({ email: userEmail, reminder_time: reminderTime }, { onConflict: 'email' });
+      if (error) console.error('Failed to save reminder time to Supabase:', error);
+    }
+  } catch (e) {
+    console.error('Error saving reminder time:', e);
+  }
+}
+
 async function deleteKeySafe(key) {
   try { await window.storage.delete(key, false); } catch (e) { /* best-effort */ }
 }
@@ -4891,6 +5208,29 @@ export default function JourniApp() {
     setCelebration(message);
     setTimeout(() => { if (celebrationTokenRef.current === token) setCelebration(null); }, 3800);
   };
+
+  /* Initialize notifications on app mount and reschedule if reminder preference changes */
+  useEffect(() => {
+    initializeNotifications();
+
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let notificationActionListener;
+    LocalNotifications.addListener("localNotificationActionPerformed", ({ notification }) => {
+      if (notification.id === NOTIFICATION_ID) logReminderOpened();
+    }).then((listener) => {
+      notificationActionListener = listener;
+    });
+
+    return () => {
+      notificationActionListener?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase === "app" && state.plan?.reminderTime) {
+      updateScheduledNotification(state.plan.reminderTime);
+    }
+  }, [state.plan?.reminderTime, phase]);
 
   /* Every evidence-producing action in the app funnels through here:
      log the event, then recompute Self-Trust live from the whole
@@ -5207,6 +5547,7 @@ export default function JourniApp() {
     await deleteKeySafe(PROFILE_KEY);
     await deleteKeySafe(APPSTATE_KEY);
     await deleteKeySafe(RETURN_KEY);
+    await updateScheduledNotification("No reminders");
     setAuthProfile(null);
     setState({ trust: 82, promise: "Read 10 pages", mood: null, moodHistory: [], plan: null, peace: null });
     setChristianMode(false);
@@ -5247,7 +5588,8 @@ export default function JourniApp() {
   else if (screen === "learn" && chapter) content = <ChapterScreen chapter={chapter} onBack={() => setChapter(null)} onCelebrate={handleCelebrate} />;
   else if (screen === "learn") content = <LearnScreen go={go} openChapter={setChapter} plan={state.plan} />;
   else if (screen === "progress") content = <ProgressScreen plan={state.plan} moodHistory={state.moodHistory} peace={state.peace} trust={state.trust} />;
-  else if (screen === "profile") content = <ProfileScreen plan={state.plan} christianMode={christianMode} setChristianMode={setChristianMode} authProfile={authProfile} onLogout={handleLogout} go={go} />;
+  else if (screen === "profile") content = <ProfileScreen plan={state.plan} christianMode={christianMode} setChristianMode={setChristianMode} authProfile={authProfile} onLogout={handleLogout} go={go} onReminderTimeUpdate={updateScheduledNotification} />;
+  else if (screen === "reminderSettings") content = <ReminderSettingsScreen onBack={() => go("profile")} plan={state.plan} authProfile={authProfile} onSave={async (reminderTime) => { setState((s) => ({ ...s, plan: { ...s.plan, reminderTime } })); await saveReminderTime(reminderTime, authProfile?.email); }} />;
   else if (screen === "myPromise") content = <MyPromiseScreen onBack={() => go("profile")} plan={state.plan} trust={state.trust} />;
   else content = <HomeScreen go={go} state={state} setState={setState} onEvidence={recordEvidenceAndRefresh} />;
 
