@@ -825,6 +825,9 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
         return;
       }
 
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      alert(`OAuth URL:\n\n${data.url}`);
+
       // Step 2: Open the OAuth URL in the in-app browser
       await Browser.open({ url: data.url });
 
