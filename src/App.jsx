@@ -5241,6 +5241,15 @@ export default function JourniApp() {
   const [bootstrapDone, setBootstrapDone] = useState(false);
   const [postSplashPhase, setPostSplashPhase] = useState("welcome");
   const [reauth, setReauth] = useState(false);
+  // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+  const [diagnostic, setDiagnostic] = useState({
+    savedPlanFound: false,
+    profileFound: false,
+    handleAuthenticatedRan: false,
+    handleAuthenticatedPlan: false,
+    handleAuthenticatedRoute: null,
+    bootstrapRoute: null,
+  });
 
   const [celebration, setCelebration] = useState(null);
   const celebrationTokenRef = useRef(0);
@@ -5340,6 +5349,12 @@ export default function JourniApp() {
         else if (savedSnapshot?.state?.plan) next = "app";
         else next = "onboarding";
       }
+      setDiagnostic((d) => ({
+        ...d,
+        savedPlanFound: !!savedSnapshot?.state?.plan,
+        profileFound: !!profile,
+        bootstrapRoute: next,
+      }));
       setPostSplashPhase(next);
       setReauth(needsReauth);
       setBootstrapDone(true);
@@ -5484,6 +5499,14 @@ export default function JourniApp() {
     };
     setAuthProfile(merged);
     await saveUserProfile(merged);
+    const hasPlan = !!state.plan;
+    // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+    setDiagnostic((d) => ({
+      ...d,
+      handleAuthenticatedRan: true,
+      handleAuthenticatedPlan: hasPlan,
+      handleAuthenticatedRoute: hasPlan ? "app" : "onboarding",
+    }));
     if (reauth) {
       setReauth(false);
       setPhase("app");
@@ -5639,6 +5662,12 @@ export default function JourniApp() {
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: fullBleed ? "center" : "flex-start", padding: fullBleed ? "8px 0" : "20px 0", background: "#DCE6EA", minHeight: "100dvh", boxSizing: "border-box", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      {/* TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING */}
+      <div style={{ position: "fixed", top: 8, left: 8, right: 8, zIndex: 9999, padding: "8px 10px", background: "rgba(20, 32, 42, 0.96)", color: "#fff", fontFamily: "monospace", fontSize: 11, lineHeight: 1.45, borderRadius: 6, pointerEvents: "none", whiteSpace: "pre-wrap" }}>
+        phase={phase} | screen={screen} | state.plan={state.plan ? `truthy (${state.plan.name || "unnamed"})` : "falsy"}{"\n"}
+        savedSnapshot.state.plan={diagnostic.savedPlanFound ? "truthy" : "falsy"} | profile={diagnostic.profileFound ? "truthy" : "falsy"}{"\n"}
+        handleAuthenticated={diagnostic.handleAuthenticatedRan ? `ran; state.plan was ${diagnostic.handleAuthenticatedPlan ? `truthy (${state.plan?.name || "unnamed"})` : "falsy"}; route=${diagnostic.handleAuthenticatedRoute}` : "not yet"} | bootstrapRoute={diagnostic.bootstrapRoute || "not yet"}
+      </div>
       <style>{FONT_IMPORT}</style>
       <div style={{
         width: 390, height: fullBleed ? "min(780px, calc(100dvh - 16px))" : 780, background: T.bg, borderRadius: 46, position: "relative",
