@@ -1933,6 +1933,8 @@ const PART2_QUESTIONS = [
   },
 ];
 
+const REMINDER_TIME_INDEX = PART2_QUESTIONS.findIndex((question) => question.key === "reminderTime");
+
 /* =========================================================
    SELF-TRUST BASELINE ASSESSMENT
    Shown once, right before Journi builds the Promise Plan —
@@ -2522,13 +2524,15 @@ function OnboardingFlow({ onBack, onComplete }) {
       if (qIndex === PART1_QUESTIONS.length - 1) { setPhase("meetCoach"); }
       else setQIndex((i) => i + 1);
     } else if (phase === "part2") {
-      if (qIndex === PART2_QUESTIONS.length - 1) {
+      if (qIndex === REMINDER_TIME_INDEX) {
         if (answers.reminderTime === "No reminders") {
-          setPhase("trustBaseline");
-          setQIndex(0);
+          setQIndex((i) => i + 1);
         } else {
           setPhase("reminderSettings");
         }
+      } else if (qIndex === PART2_QUESTIONS.length - 1) {
+        setPhase("trustBaseline");
+        setQIndex(0);
       } else {
         setQIndex((i) => i + 1);
       }
@@ -2547,7 +2551,7 @@ function OnboardingFlow({ onBack, onComplete }) {
       else setQIndex((i) => i - 1);
     } else if (phase === "reminderSettings") {
       setPhase("part2");
-      setQIndex(PART2_QUESTIONS.length - 1);
+      setQIndex(REMINDER_TIME_INDEX);
     } else if (phase === "trustBaseline") {
       if (qIndex === 0) {
         if (answers.fastPath) setPhase("fastPathGoal");
@@ -2638,14 +2642,15 @@ function OnboardingFlow({ onBack, onComplete }) {
       <ReminderSettingsScreen
         onBack={() => {
           setPhase("part2");
-          setQIndex(PART2_QUESTIONS.length - 1);
+          setQIndex(REMINDER_TIME_INDEX);
         }}
+        onSaved={() => {}}
         plan={{ reminderTime: answers.reminderTime }}
         authProfile={null}
         onSave={async (reminderTime) => {
           setAnswers((a) => ({ ...a, reminderTime }));
-          setPhase("trustBaseline");
-          setQIndex(0);
+          setPhase("part2");
+          setQIndex(REMINDER_TIME_INDEX + 1);
         }}
       />
     );
@@ -4108,7 +4113,7 @@ function Toggle({ on, onClick, label }) {
    REMINDER SETTINGS — Choose when to receive daily reminders
    Saved to both local storage and Supabase user_profiles table
 --------------------------------------------------------- */
-function ReminderSettingsScreen({ onBack, plan, authProfile, onSave }) {
+function ReminderSettingsScreen({ onBack, onSaved, plan, authProfile, onSave }) {
   const [selected, setSelected] = useState(plan?.reminderTime || "No reminders");
   const [customTime, setCustomTime] = useState("");
   const [saved, setSaved] = useState(false);
@@ -4118,7 +4123,11 @@ function ReminderSettingsScreen({ onBack, plan, authProfile, onSave }) {
   const handleSave = async () => {
     await onSave(selected);
     setSaved(true);
-    setTimeout(() => { setSaved(false); onBack(); }, 1200);
+    setTimeout(() => {
+      setSaved(false);
+      if (onSaved) onSaved();
+      else onBack();
+    }, 1200);
   };
 
   return (
