@@ -825,12 +825,6 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
         return;
       }
 
-      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
-      const parsedUrl = new URL(data.url);
-      const promptParam = parsedUrl.searchParams.get("prompt");
-      const allParamNames = Array.from(parsedUrl.searchParams.keys()).join(", ");
-      alert(`prompt param present: ${promptParam ? "YES - value: " + promptParam : "NO"}\n\nAll param names: ${allParamNames}`);
-
       // Step 2: Open the OAuth URL in the in-app browser
       await Browser.open({ url: data.url });
 
@@ -5592,9 +5586,12 @@ export default function JourniApp() {
   };
 
   const handleLogout = async () => {
+    await supabase.auth.signOut();
     await deleteKeySafe(PROFILE_KEY);
     await deleteKeySafe(APPSTATE_KEY);
     await deleteKeySafe(RETURN_KEY);
+    await deleteKeySafe(EVIDENCE_KEY);
+    await deleteKeySafe(PROMISE_CEREMONY_KEY);
     await updateScheduledNotification("No reminders");
     setAuthProfile(null);
     setState({ trust: 82, promise: "Read 10 pages", mood: null, moodHistory: [], plan: null, peace: null });
