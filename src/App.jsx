@@ -807,7 +807,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
         options: {
           redirectTo: "journi://auth-callback",
           skipBrowserRedirect: true,
-          ...(provider === "google" ? { queryParams: { prompt: "select_account" } } : {}),
+          ...(provider.toLowerCase() === "google" ? { queryParams: { prompt: "select_account" } } : {}),
         },
       });
 
