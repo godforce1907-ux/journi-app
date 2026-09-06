@@ -826,7 +826,10 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
       }
 
       // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
-      alert(`OAuth URL:\n\n${data.url}`);
+      const parsedUrl = new URL(data.url);
+      const promptParam = parsedUrl.searchParams.get("prompt");
+      const allParamNames = Array.from(parsedUrl.searchParams.keys()).join(", ");
+      alert(`prompt param present: ${promptParam ? "YES - value: " + promptParam : "NO"}\n\nAll param names: ${allParamNames}`);
 
       // Step 2: Open the OAuth URL in the in-app browser
       await Browser.open({ url: data.url });
