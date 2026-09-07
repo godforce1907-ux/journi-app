@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Browser } from "@capacitor/browser";
@@ -784,6 +784,8 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
   const [error, setError] = useState("");
 
   const finishAuth = (authMethod, resolvedEmail) => {
+    // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+    addDiagnosticLog("finishAuth", `method=${authMethod} email=${resolvedEmail}`, "N/A");
     onAuthenticated({
       name: null,
       email: resolvedEmail || null,
@@ -838,9 +840,13 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
 
         try {
           // exchangeCodeForSession handles PKCE code exchange in one call
+          // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+          addDiagnosticLog("OAuth:exchangeCodeForSession", "start", "N/A");
           const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(event.url);
+          addDiagnosticLog("OAuth:exchangeCodeForSession", `result: ${exchangeError ? "error=" + exchangeError.message : "success"}`, "N/A");
 
           if (exchangeError) {
+            addDiagnosticLog("OAuth:failure", "exchange error, returning to options", "options");
             setError(`Sign-in failed: ${exchangeError.message}`);
             setMode("options");
             setConnectingProvider(null);
@@ -849,6 +855,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
           }
 
           if (!sessionData?.user) {
+            addDiagnosticLog("OAuth:failure", "no user in sessionData, returning to options", "options");
             setError("Failed to retrieve user data");
             setMode("options");
             setConnectingProvider(null);
@@ -857,6 +864,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
           }
 
           // Step 4: Use real user data from the session
+          addDiagnosticLog("OAuth:success", `email=${sessionData.user.email}`, "N/A");
           finishAuth(provider, sessionData.user.email);
 
           // Clean up the listener
@@ -864,6 +872,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
 
         } catch (error) {
           console.error("Error processing OAuth callback:", error);
+          addDiagnosticLog("OAuth:exception", error.message, "options");
           setError("An error occurred during sign-in");
           setMode("options");
           setConnectingProvider(null);
@@ -5230,6 +5239,40 @@ async function saveAppStateSnapshot(snapshot) {
 /* Session length for the simulated auth layer */
 const SESSION_DAYS = 30;
 
+/* TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+   Scrollable on-screen log of all routing decisions */
+function DiagnosticOverlay({ logs }) {
+  const [collapsed, setCollapsed] = useState(false);
+  if (logs.length === 0) return null;
+  return (
+    <div style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999,
+      background: "rgba(0,0,0,0.9)", color: "#0f0", fontFamily: "monospace",
+      maxHeight: collapsed ? "28px" : "40%", overflow: "hidden",
+      borderBottom: "2px solid #0f0", padding: "8px", fontSize: "10px",
+      lineHeight: "1.3", display: "flex", flexDirection: "column"
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+        <span style={{ fontWeight: "bold", color: "#0f0" }}>🔍 ROUTING LOG</span>
+        <button onClick={() => setCollapsed(!collapsed)} style={{
+          background: "none", color: "#0f0", border: "none", cursor: "pointer", padding: 0
+        }}>
+          {collapsed ? "▼" : "▲"}
+        </button>
+      </div>
+      {!collapsed && (
+        <div style={{ overflowY: "auto", maxHeight: "calc(100% - 24px)" }}>
+          {logs.map((log, i) => (
+            <div key={i} style={{ marginBottom: "2px", paddingBottom: "2px", borderBottom: "1px solid #0f080" }}>
+              <span style={{ color: "#f00" }}>#{log.seq}</span> <span style={{ color: "#0f0" }}>{log.ts}</span> <strong>{log.source}</strong> | condition: {log.condition} | phase→<span style={{ color: "#ff0" }}>{log.phase}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function JourniApp() {
   const [phase, setPhase] = useState("splash"); // splash | welcome | signin | onboarding | app
   const [screen, setScreen] = useState("home");
@@ -5243,6 +5286,15 @@ export default function JourniApp() {
   const [bootstrapDone, setBootstrapDone] = useState(false);
   const [postSplashPhase, setPostSplashPhase] = useState("welcome");
   const [reauth, setReauth] = useState(false);
+
+  // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+  const [diagnosticLog, setDiagnosticLog] = useState([]);
+  const diagnosticSeqRef = useRef(0);
+  const addDiagnosticLog = useCallback((source, condition, phaseValue) => {
+    const seq = ++diagnosticSeqRef.current;
+    const ts = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 });
+    setDiagnosticLog((prev) => [...prev.slice(-49), { seq, ts, source, condition, phase: phaseValue || "N/A" }]);
+  }, []);
 
   const [celebration, setCelebration] = useState(null);
   const celebrationTokenRef = useRef(0);
@@ -5314,7 +5366,10 @@ export default function JourniApp() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      addDiagnosticLog("bootstrap:getSession", "start", "N/A");
       const sessionCheck = await supabase.auth.getSession();
+      addDiagnosticLog("bootstrap:getSession", `result: ${sessionCheck?.data?.session ? "has_session" : "no_session"}`, "N/A");
       const profile = await loadUserProfile();
       let savedSnapshot = null;
       let snapshotLoadFailed = false;
@@ -5342,6 +5397,8 @@ export default function JourniApp() {
         else if (savedSnapshot?.state?.plan) next = "app";
         else next = "onboarding";
       }
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      addDiagnosticLog("bootstrap:compute", `profile=${!!profile} session=${hasLiveSession} valid=${sessionValid} plan=${!!savedSnapshot?.state?.plan}`, next);
       setPostSplashPhase(next);
       setReauth(needsReauth);
       setBootstrapDone(true);
@@ -5363,10 +5420,14 @@ export default function JourniApp() {
     };
 
     (async () => {
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      addDiagnosticLog("authListener:getSession", "start", "N/A");
       const { data } = await supabase.auth.getSession();
+      addDiagnosticLog("authListener:getSession", `result: ${data.session?.user ? "has_user" : "no_user"}`, "N/A");
       if (!isMounted) return;
       if (!(await waitForBootstrap())) return;
       if (data.session?.user) {
+        addDiagnosticLog("authListener:calling", "handleAuthenticated from existing session", "N/A");
         handleAuthenticated({
           email: data.session.user.email,
           authMethod: "Email (Magic Link)",
@@ -5398,10 +5459,12 @@ export default function JourniApp() {
   /* Advance past Splash once both the brand moment and the account check are done */
   useEffect(() => {
     if (phase === "splash" && splashTimerDone && bootstrapDone) {
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      addDiagnosticLog("SplashPhaseTransition:effect", `postSplashPhase=${postSplashPhase}`, postSplashPhase);
       setPhase(postSplashPhase);
       if (postSplashPhase === "app") setScreen("home");
     }
-  }, [phase, splashTimerDone, bootstrapDone, postSplashPhase]);
+  }, [phase, splashTimerDone, bootstrapDone, postSplashPhase, addDiagnosticLog]);
 
   /* Keep the account's saved progress in sync so a reload restores everything */
   useEffect(() => {
@@ -5479,6 +5542,8 @@ export default function JourniApp() {
   const go = (s) => { setChapter(null); setScreen(s); };
 
   const handleAuthenticated = async (partialProfile) => {
+    // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+    addDiagnosticLog("handleAuthenticated", `entry email=${partialProfile.email} method=${partialProfile.authMethod}`, "N/A");
     const merged = {
       ...(authProfile || {}),
       ...partialProfile,
@@ -5487,18 +5552,26 @@ export default function JourniApp() {
     setAuthProfile(merged);
     await saveUserProfile(merged);
     if (reauth) {
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      addDiagnosticLog("handleAuthenticated", "reauth=true", "app");
       setReauth(false);
       setPhase("app");
       setScreen("home");
     } else if (state.plan) {
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      addDiagnosticLog("handleAuthenticated", "state.plan exists", "app");
       setPhase("app");
       setScreen("home");
     } else {
+      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+      addDiagnosticLog("handleAuthenticated", "new user, no plan", "onboarding");
       setPhase("onboarding");
     }
   };
 
   const finishOnboarding = (plan) => {
+    // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+    addDiagnosticLog("finishOnboarding", "completed onboarding flow", "app");
     setState((s) => ({
       ...s,
       trust: plan.trustBaseline,
@@ -5569,6 +5642,8 @@ export default function JourniApp() {
   };
 
   const handleWelcomeContinue = async (selectedEmotion) => {
+    // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+    addDiagnosticLog("handleWelcomeContinue", `emotion=${selectedEmotion?.label || "none"}`, "app");
     const now = new Date();
     const rec = (await loadReturnRecord()) || {};
     await saveReturnRecord({ ...rec, lastVisitISO: now.toISOString(), lastVisitDayKey: localDayKey(now) });
@@ -5587,6 +5662,8 @@ export default function JourniApp() {
   };
 
   const handleLogout = async () => {
+    // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+    addDiagnosticLog("handleLogout", "clearing all data", "welcome");
     await supabase.auth.signOut();
     await deleteKeySafe(PROFILE_KEY);
     await deleteKeySafe(APPSTATE_KEY);
@@ -5615,11 +5692,11 @@ export default function JourniApp() {
   } else if (showingIdentityRecap) {
     content = <IdentityRecapScreen type={identityRecap.type} gapAware={identityRecap.gapAware} onContinue={() => setIdentityRecap((r) => ({ ...r, show: false }))} />;
   } else if (phase === "welcome") {
-    content = <AuthScreen onStart={() => setPhase("signin")} onSkip={() => setPhase("signin")} />;
+    content = <AuthScreen onStart={() => { addDiagnosticLog("AuthScreen:onClick", "Start button", "signin"); setPhase("signin"); }} onSkip={() => { addDiagnosticLog("AuthScreen:onClick", "Skip button", "signin"); setPhase("signin"); }} />;
   } else if (phase === "signin") {
-    content = <SignInScreen onAuthenticated={handleAuthenticated} onBack={() => setPhase("welcome")} reauth={reauth} />;
+    content = <SignInScreen onAuthenticated={handleAuthenticated} onBack={() => { addDiagnosticLog("SignInScreen:onClick", "Back button", "welcome"); setPhase("welcome"); }} reauth={reauth} />;
   } else if (phase === "onboarding") {
-    content = <OnboardingFlow onBack={() => setPhase("welcome")} onComplete={finishOnboarding} />;
+    content = <OnboardingFlow onBack={() => { addDiagnosticLog("OnboardingFlow:onClick", "Back button", "welcome"); setPhase("welcome"); }} onComplete={finishOnboarding} />;
   } else if (screen === "breakdown") content = <BreakdownFlow original={state.promise} onExit={() => go("home")} onApply={applyBreakdown} />;
   else if (screen === "stuck") content = <StuckFlow onExit={() => go("home")} promise={state.promise} plan={state.plan} onPromiseKept={markCompletedToday} onEvidence={recordEvidenceAndRefresh} trust={state.trust} />;
   else if (screen === "coach") content = <CoachScreen onBack={() => go("home")} plan={state.plan} />;
@@ -5654,6 +5731,8 @@ export default function JourniApp() {
         </div>
         {showNav && <BottomNav screen={screen} go={go} />}
         <CelebrationToast message={celebration} />
+        {/* TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING */}
+        <DiagnosticOverlay logs={diagnosticLog} />
       </div>
     </div>
   );
