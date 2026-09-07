@@ -943,6 +943,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth }) {
               <ShieldCheck size={13} color={T.inkFaint} />
               <span style={{ fontSize: 11, color: T.inkFaint }}>No passwords. Your data stays private.</span>
             </div>
+            {error && <p style={{ margin: 0, fontSize: 12, color: T.sand, fontWeight: 600, textAlign: "center", marginTop: 10 }}>{error}</p>}
           </div>
         )}
 
