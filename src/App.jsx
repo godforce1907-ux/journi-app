@@ -774,7 +774,7 @@ function SplashScreen({ onDone }) {
    Simulated auth (no live backend), backed by persistent
    window.storage so accounts genuinely survive a reload.
 --------------------------------------------------------- */
-function SignInScreen({ onAuthenticated, onBack, reauth }) {
+function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
   const [mode, setMode] = useState("options"); // options | email | otp | magicSent | connecting
   const [connectingProvider, setConnectingProvider] = useState(null);
   const [email, setEmail] = useState("");
@@ -5694,7 +5694,7 @@ export default function JourniApp() {
   } else if (phase === "welcome") {
     content = <AuthScreen onStart={() => { addDiagnosticLog("AuthScreen:onClick", "Start button", "signin"); setPhase("signin"); }} onSkip={() => { addDiagnosticLog("AuthScreen:onClick", "Skip button", "signin"); setPhase("signin"); }} />;
   } else if (phase === "signin") {
-    content = <SignInScreen onAuthenticated={handleAuthenticated} onBack={() => { addDiagnosticLog("SignInScreen:onClick", "Back button", "welcome"); setPhase("welcome"); }} reauth={reauth} />;
+    content = <SignInScreen onAuthenticated={handleAuthenticated} onBack={() => { addDiagnosticLog("SignInScreen:onClick", "Back button", "welcome"); setPhase("welcome"); }} reauth={reauth} addDiagnosticLog={addDiagnosticLog} />;
   } else if (phase === "onboarding") {
     content = <OnboardingFlow onBack={() => { addDiagnosticLog("OnboardingFlow:onClick", "Back button", "welcome"); setPhase("welcome"); }} onComplete={finishOnboarding} />;
   } else if (screen === "breakdown") content = <BreakdownFlow original={state.promise} onExit={() => go("home")} onApply={applyBreakdown} />;
