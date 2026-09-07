@@ -783,6 +783,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
   const [demoCode] = useState(() => String(Math.floor(100000 + Math.random() * 900000)));
   const [error, setError] = useState("");
   const oauthAttemptRef = useRef(0);
+  const pkceVerifierKey = "sb-lruwuahhmgyzjrmkbnux-auth-token-code-verifier";
   const logPkceStorageKeys = () => {
     const keys = Object.keys(window.localStorage).join(", ");
     addDiagnosticLog("PKCE:storageKeys", `keys: [${keys || "none"}]`, "N/A");
@@ -849,9 +850,14 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
         clearTimeout(timeoutId);
 
         try {
+          const callbackUrl = new URL(event.url);
+          const parameterNames = [...new Set(callbackUrl.searchParams.keys())];
+          addDiagnosticLog("OAuth:callbackParams", `params: [${parameterNames.join(", ") || "none"}]`, "N/A");
+
           // exchangeCodeForSession handles PKCE code exchange in one call
           // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
           logPkceStorageKeys();
+          addDiagnosticLog("PKCE:verifierLength", `length: ${window.localStorage.getItem(pkceVerifierKey)?.length ?? 0}`, "N/A");
           addDiagnosticLog("OAuth:exchangeCodeForSession", "start", "N/A");
           const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(event.url);
           addDiagnosticLog("OAuth:exchangeCodeForSession", `result: ${exchangeError ? "error=" + exchangeError.message : "success"}`, "N/A");
