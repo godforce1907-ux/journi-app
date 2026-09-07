@@ -783,7 +783,10 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
   const [demoCode] = useState(() => String(Math.floor(100000 + Math.random() * 900000)));
   const [error, setError] = useState("");
   const oauthAttemptRef = useRef(0);
-  const pkceVerifierKey = "supabase.auth.token-code-verifier";
+  const logPkceStorageKeys = () => {
+    const keys = Object.keys(window.localStorage).join(", ");
+    addDiagnosticLog("PKCE:storageKeys", `keys: [${keys || "none"}]`, "N/A");
+  };
 
   const finishAuth = (authMethod, resolvedEmail) => {
     // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
@@ -816,7 +819,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
           ...(provider.toLowerCase() === "google" ? { queryParams: { prompt: "select_account" } } : {}),
         },
       });
-      addDiagnosticLog("PKCE:storageCheck", `key exists: ${window.localStorage.getItem(pkceVerifierKey) !== null}`, "N/A");
+      logPkceStorageKeys();
 
       if (oauthError) {
         setError(`Sign-in failed: ${oauthError.message}`);
@@ -833,12 +836,12 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
       }
 
       // Step 2: Open the OAuth URL in the in-app browser
-      addDiagnosticLog("PKCE:storageCheck", `key exists: ${window.localStorage.getItem(pkceVerifierKey) !== null}`, "N/A");
+      logPkceStorageKeys();
       await Browser.open({ url: data.url });
 
       // Step 3: Set up the deep link listener for "journi://auth-callback"
       unlistenHandle = await App.addListener("appUrlOpen", async (event) => {
-        addDiagnosticLog("PKCE:storageCheck", `key exists: ${window.localStorage.getItem(pkceVerifierKey) !== null}`, "N/A");
+        logPkceStorageKeys();
         // Close the browser immediately when the redirect fires
         await Browser.close();
 
@@ -848,7 +851,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
         try {
           // exchangeCodeForSession handles PKCE code exchange in one call
           // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
-          addDiagnosticLog("PKCE:storageCheck", `key exists: ${window.localStorage.getItem(pkceVerifierKey) !== null}`, "N/A");
+          logPkceStorageKeys();
           addDiagnosticLog("OAuth:exchangeCodeForSession", "start", "N/A");
           const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(event.url);
           addDiagnosticLog("OAuth:exchangeCodeForSession", `result: ${exchangeError ? "error=" + exchangeError.message : "success"}`, "N/A");
