@@ -5314,8 +5314,6 @@ export default function JourniApp() {
     let cancelled = false;
     (async () => {
       const sessionCheck = await supabase.auth.getSession();
-      // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
-      alert(`Cold launch getSession result: hasSession=${!!sessionCheck.data.session}, error=${sessionCheck.error?.message || "none"}`);
       const profile = await loadUserProfile();
       let savedSnapshot = null;
       let snapshotLoadFailed = false;
@@ -5589,9 +5587,6 @@ export default function JourniApp() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
-    const { data, error } = await supabase.auth.getSession();
-    alert(`After signOut, getSession returned: ${JSON.stringify({ hasSession: !!data?.session, error: error?.message })}`);
     await deleteKeySafe(PROFILE_KEY);
     await deleteKeySafe(APPSTATE_KEY);
     await deleteKeySafe(RETURN_KEY);
