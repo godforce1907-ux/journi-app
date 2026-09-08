@@ -863,6 +863,17 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
           addDiagnosticLog("OAuth:exchangeCodeForSession", `result: ${exchangeError ? "error=" + exchangeError.message : "success"}`, "N/A");
 
           if (exchangeError) {
+            // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
+            addDiagnosticLog("OAuth:errorMetadata", `operation: POST /token?grant_type=pkce`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `verifierExists: ${window.localStorage.getItem(pkceVerifierKey) !== null}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `verifierLength: ${window.localStorage.getItem(pkceVerifierKey)?.length ?? 0}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `name: ${exchangeError?.name}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `message: ${exchangeError?.message}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `status: ${exchangeError?.status}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `code: ${exchangeError?.code}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `__isAuthError: ${exchangeError?.__isAuthError}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `typeof: ${typeof exchangeError}`, "N/A");
+            addDiagnosticLog("OAuth:errorMetadata", `keys: [${exchangeError ? Object.keys(exchangeError).join(", ") : "none"}]`, "N/A");
             addDiagnosticLog("OAuth:failure", "exchange error, returning to options", "options");
             setError(`Sign-in failed: ${exchangeError.message}`);
             setMode("options");
