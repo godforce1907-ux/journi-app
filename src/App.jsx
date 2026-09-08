@@ -774,7 +774,7 @@ function SplashScreen({ onDone }) {
    Simulated auth (no live backend), backed by persistent
    window.storage so accounts genuinely survive a reload.
 --------------------------------------------------------- */
-function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
+function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog, onDiagnosticTrigger }) {
   const [mode, setMode] = useState("options"); // options | email | otp | magicSent | connecting
   const [connectingProvider, setConnectingProvider] = useState(null);
   const [email, setEmail] = useState("");
@@ -783,10 +783,20 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
   const [demoCode] = useState(() => String(Math.floor(100000 + Math.random() * 900000)));
   const [error, setError] = useState("");
   const oauthAttemptRef = useRef(0);
+  const diagnosticTriggerRef = useRef(null);
   const pkceVerifierKey = "sb-lruwuahhmgyzjrmkbnux-auth-token-code-verifier";
   const logPkceStorageKeys = () => {
     const keys = Object.keys(window.localStorage).join(", ");
     addDiagnosticLog("PKCE:storageKeys", `keys: [${keys || "none"}]`, "N/A");
+  };
+
+  const startDiagnosticTrigger = () => {
+    clearTimeout(diagnosticTriggerRef.current);
+    diagnosticTriggerRef.current = setTimeout(() => onDiagnosticTrigger?.(), 1200);
+  };
+
+  const cancelDiagnosticTrigger = () => {
+    clearTimeout(diagnosticTriggerRef.current);
   };
 
   const finishAuth = (authMethod, resolvedEmail) => {
@@ -959,7 +969,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog }) {
       <div style={{ flex: 1, overflowY: "auto" }}>
         <div style={{ textAlign: "center", marginBottom: 22 }}>
           <Pip size={56} mood="soft" />
-          <h1 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 21, color: T.ink, margin: "14px 0 6px" }}>
+          <h1 onPointerDown={startDiagnosticTrigger} onPointerUp={cancelDiagnosticTrigger} onPointerCancel={cancelDiagnosticTrigger} onPointerLeave={cancelDiagnosticTrigger} style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 21, color: T.ink, margin: "14px 0 6px" }}>
             {reauth ? "Welcome back — sign in again" : "Sign in to Journi"}
           </h1>
           <p style={{ color: T.inkSoft, fontSize: 13, lineHeight: 1.6, maxWidth: 260, margin: "0 auto" }}>
@@ -5268,35 +5278,32 @@ async function saveAppStateSnapshot(snapshot) {
 const SESSION_DAYS = 30;
 
 /* TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
-   Scrollable on-screen log of all routing decisions */
-function DiagnosticOverlay({ logs }) {
-  const [collapsed, setCollapsed] = useState(false);
-  if (logs.length === 0) return null;
+   Scrollable on-screen log of selected OAuth decisions */
+function DiagnosticOverlay({ logs, onClear, onClose }) {
+  const oauthLogs = logs.filter((log) => ["OAuth:attempt", "PKCE:storageKeys", "OAuth:callbackParams", "OAuth:exchangeCodeForSession", "OAuth:errorMetadata", "OAuth:failure"].includes(log.source));
+  if (oauthLogs.length === 0) return null;
   return (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999,
       background: "rgba(0,0,0,0.9)", color: "#0f0", fontFamily: "monospace",
-      maxHeight: collapsed ? "28px" : "40%", overflow: "hidden",
+      maxHeight: "40%", overflow: "hidden",
       borderBottom: "2px solid #0f0", padding: "8px", fontSize: "10px",
       lineHeight: "1.3", display: "flex", flexDirection: "column"
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-        <span style={{ fontWeight: "bold", color: "#0f0" }}>🔍 ROUTING LOG</span>
-        <button onClick={() => setCollapsed(!collapsed)} style={{
-          background: "none", color: "#0f0", border: "none", cursor: "pointer", padding: 0
-        }}>
-          {collapsed ? "▼" : "▲"}
-        </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+        <span style={{ fontWeight: "bold", color: "#0f0" }}>🔍 OAUTH DIAGNOSTICS</span>
+        <span style={{ display: "flex", gap: 8 }}>
+          <button type="button" onClick={onClear} style={{ background: "none", color: "#0f0", border: "1px solid #0f0", borderRadius: 4, cursor: "pointer", padding: "0 6px" }}>Clear</button>
+          <button type="button" onClick={onClose} style={{ background: "none", color: "#0f0", border: "1px solid #0f0", borderRadius: 4, cursor: "pointer", padding: "0 6px" }}>Close</button>
+        </span>
       </div>
-      {!collapsed && (
-        <div style={{ overflowY: "auto", maxHeight: "calc(100% - 24px)" }}>
-          {logs.map((log, i) => (
-            <div key={i} style={{ marginBottom: "2px", paddingBottom: "2px", borderBottom: "1px solid #0f080" }}>
-              <span style={{ color: "#f00" }}>#{log.seq}</span> <span style={{ color: "#0f0" }}>{log.ts}</span> <strong>{log.source}</strong> | condition: {log.condition} | phase→<span style={{ color: "#ff0" }}>{log.phase}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <div style={{ overflowY: "auto", maxHeight: "calc(100% - 24px)" }}>
+        {oauthLogs.map((log, i) => (
+          <div key={i} style={{ marginBottom: "2px", paddingBottom: "2px", borderBottom: "1px solid #0f080" }}>
+            <span style={{ color: "#f00" }}>#{log.seq}</span> <span style={{ color: "#0f0" }}>{log.ts}</span> <strong>{log.source}</strong> | {log.condition} | phase→<span style={{ color: "#ff0" }}>{log.phase}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -5317,11 +5324,13 @@ export default function JourniApp() {
 
   // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
   const [diagnosticLog, setDiagnosticLog] = useState([]);
+  const [showDiagnosticOverlay, setShowDiagnosticOverlay] = useState(false);
   const diagnosticSeqRef = useRef(0);
   const addDiagnosticLog = useCallback((source, condition, phaseValue) => {
     const seq = ++diagnosticSeqRef.current;
     const ts = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 });
-    setDiagnosticLog((prev) => [...prev.slice(-49), { seq, ts, source, condition, phase: phaseValue || "N/A" }]);
+    const entry = { seq, ts, source, condition, phase: phaseValue || "N/A" };
+    setDiagnosticLog((prev) => [...prev.slice(-49), entry]);
   }, []);
 
   const [celebration, setCelebration] = useState(null);
@@ -5722,7 +5731,7 @@ export default function JourniApp() {
   } else if (phase === "welcome") {
     content = <AuthScreen onStart={() => { addDiagnosticLog("AuthScreen:onClick", "Start button", "signin"); setPhase("signin"); }} onSkip={() => { addDiagnosticLog("AuthScreen:onClick", "Skip button", "signin"); setPhase("signin"); }} />;
   } else if (phase === "signin") {
-    content = <SignInScreen onAuthenticated={handleAuthenticated} onBack={() => { addDiagnosticLog("SignInScreen:onClick", "Back button", "welcome"); setPhase("welcome"); }} reauth={reauth} addDiagnosticLog={addDiagnosticLog} />;
+    content = <SignInScreen onAuthenticated={handleAuthenticated} onBack={() => { addDiagnosticLog("SignInScreen:onClick", "Back button", "welcome"); setPhase("welcome"); }} reauth={reauth} addDiagnosticLog={addDiagnosticLog} onDiagnosticTrigger={() => setShowDiagnosticOverlay(true)} />;
   } else if (phase === "onboarding") {
     content = <OnboardingFlow onBack={() => { addDiagnosticLog("OnboardingFlow:onClick", "Back button", "welcome"); setPhase("welcome"); }} onComplete={finishOnboarding} />;
   } else if (screen === "breakdown") content = <BreakdownFlow original={state.promise} onExit={() => go("home")} onApply={applyBreakdown} />;
@@ -5760,7 +5769,7 @@ export default function JourniApp() {
         {showNav && <BottomNav screen={screen} go={go} />}
         <CelebrationToast message={celebration} />
         {/* TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING */}
-        <DiagnosticOverlay logs={diagnosticLog} />
+        {showDiagnosticOverlay && <DiagnosticOverlay logs={diagnosticLog} onClear={() => setDiagnosticLog([])} onClose={() => setShowDiagnosticOverlay(false)} />}
       </div>
     </div>
   );
