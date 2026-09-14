@@ -783,6 +783,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog, onDia
   const [demoCode] = useState(() => String(Math.floor(100000 + Math.random() * 900000)));
   const [error, setError] = useState("");
   const oauthAttemptRef = useRef(0);
+  const oauthCallbackInFlightRef = useRef(false);
   const diagnosticTriggerRef = useRef(null);
   const pkceVerifierKey = "sb-lruwuahhmgyzjrmkbnux-auth-token-code-verifier";
   const logPkceStorageKeys = () => {
@@ -812,6 +813,7 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog, onDia
 
   const connectProvider = async (provider) => {
     const attempt = ++oauthAttemptRef.current;
+    oauthCallbackInFlightRef.current = false;
     addDiagnosticLog("OAuth:attempt", `attempt=${attempt} provider=${provider}`, "N/A");
     setConnectingProvider(provider);
     setMode("connecting");
@@ -852,6 +854,8 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog, onDia
 
       // Step 3: Set up the deep link listener for "journi://auth-callback"
       unlistenHandle = await App.addListener("appUrlOpen", async (event) => {
+        if (oauthCallbackInFlightRef.current) return;
+        oauthCallbackInFlightRef.current = true;
         logPkceStorageKeys();
         // Close the browser immediately when the redirect fires
         await Browser.close();
@@ -863,13 +867,24 @@ function SignInScreen({ onAuthenticated, onBack, reauth, addDiagnosticLog, onDia
           const callbackUrl = new URL(event.url);
           const parameterNames = [...new Set(callbackUrl.searchParams.keys())];
           addDiagnosticLog("OAuth:callbackParams", `params: [${parameterNames.join(", ") || "none"}]`, "N/A");
+          const code = callbackUrl.searchParams.get("code");
+          const flowId = callbackUrl.searchParams.get("sb_flow_id");
+
+          if (!code) {
+            addDiagnosticLog("OAuth:failure", "no code in callback URL, returning to options", "options");
+            setError("Failed to retrieve user data");
+            setMode("options");
+            setConnectingProvider(null);
+            await unlistenHandle.remove();
+            return;
+          }
 
           // exchangeCodeForSession handles PKCE code exchange in one call
           // TEMPORARY DIAGNOSTIC - REMOVE AFTER DEBUGGING
           logPkceStorageKeys();
           addDiagnosticLog("PKCE:verifierLength", `length: ${window.localStorage.getItem(pkceVerifierKey)?.length ?? 0}`, "N/A");
           addDiagnosticLog("OAuth:exchangeCodeForSession", "start", "N/A");
-          const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(event.url);
+          const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined);
           addDiagnosticLog("OAuth:exchangeCodeForSession", `result: ${exchangeError ? "error=" + exchangeError.message : "success"}`, "N/A");
 
           if (exchangeError) {
